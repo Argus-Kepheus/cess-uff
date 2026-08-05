@@ -1,0 +1,19 @@
+# Wokwi simulator configuration.
+#
+# This file is only required to run the simulation locally through the
+# "Wokwi for VS Code" extension. It is NOT needed to open/run this project
+# on the Wokwi website (wokwi.com), which auto-detects main.py.
+#
+# Before running "Wokwi: Start Simulator" in VS Code:
+#   1. Download a MicroPython firmware .bin build for the generic ESP32
+#      target from https://micropython.org/download/esp32
+#   2. Place the downloaded file in this project's root folder.
+#   3. Update the "firmware" path below to match the downloaded file name.
+#
+# See docs/technical-specification.md and README.md for the full setup.
+
+[wokwi]
+version = 1
+firmware = "firmware.bin"
+gdbServerPort = 3333
+rfc2217ServerPort = 4000
