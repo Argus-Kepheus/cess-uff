@@ -1,6 +1,6 @@
 # cess-uff
 
-**Language / Idioma:** [English](../../README.md) | [Português](README.md)
+**Language / Idioma:** [English](../EN/README.md) | [Português](README.md)
 
 Avaliação prática com ESP32 (MicroPython) para as disciplinas de
 Instrumentação, Eletrônica e Lógica de Programação. Dois LEDs e um
