@@ -9,11 +9,9 @@ Each sheet documents the part as actually used in this project (not every
 capability the real component has). Extend a sheet, rather than duplicating
 it, if a future revision needs more detail on a given part.
 
-For the physical ESP32-DevKitC V4 header position of each GPIO used here,
-reserved flash pins, and a physical wiring checklist, see
-[`docs/project-pinout.md`](project-pinout.md). For the full board/module
-identification and selection rationale (why ESP32-DevKitC V4 specifically,
-WROOM vs. WROVER compatibility, electrical characteristics), see
+For the physical header position of each GPIO used here, reserved pins,
+module (WROOM vs. WROVER) compatibility, electrical characteristics, and a
+physical wiring checklist, see
 [`docs/hardware-reference.md`](hardware-reference.md).
 
 ## 1. Microcontroller board — ESP32-DevKitC V4
@@ -27,7 +25,7 @@ WROOM vs. WROVER compatibility, electrical characteristics), see
 | Recommended module profile | ESP32-WROOM-32E |
 | Header layout | 38 pins, 19 pins per side |
 | Firmware | MicroPython for ESP32 |
-| Firmware version pinned in `diagram.json` (`attrs.env`, wokwi.com only) | `micropython-20240602-v1.23.0` |
+| Firmware version pin in `diagram.json` (`attrs.env`) | None — `attrs: {}`. An earlier revision pinned `"env": "micropython-20240602-v1.23.0"`, which caused an infinite boot-loop on wokwi.com (repeated `SW_RESET`, MicroPython never starts). Removed; the board now uses Wokwi's default/current MicroPython build. See `docs/technical-specification.md`, §16. |
 | Pin-numbering convention | ESP32 GPIO numbers, not sequential physical header positions |
 | Logic level | 3.3 V |
 | Selection rationale | See `technical-specification.md`, §3.1 |
@@ -98,7 +96,7 @@ WROOM vs. WROVER compatibility, electrical characteristics), see
 | Type | Normally-open, momentary, 4-leg (two electrically-common pairs) |
 | Valid `diagram.json` pin names | `1.l`, `1.r` (one node), `2.l`, `2.r` (other node) |
 | Pins used in this project | `1.l` → ESP32 `3V3`; `2.l` → ESP32 GPIO 17 |
-| Simulation key binding | `Space` (attr `key`) |
+| Simulation key binding | `" "` (attr `key`; the literal `KeyboardEvent.key` value for the space bar) |
 | Electrical role | Active-high input with internal `Pin.PULL_DOWN` on GPIO 17 — see `technical-specification.md`, §6.2 |
 
 > **Note:** an earlier draft of this project referenced this part's pins as

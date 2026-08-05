@@ -1,630 +1,152 @@
 # ESP32-DevKitC V4 Hardware Reference
 
-## 1. Purpose
+The single source of truth for the physical board, module, GPIO-to-header
+mapping, and electrical constraints. Behavioral/software rationale (why
+`asyncio`, why I2C over SPI, debounce strategy, OLED update strategy) lives
+in [`technical-specification.md`](technical-specification.md) and is not
+repeated here. Per-part Wokwi identifiers live in
+[`component-specifications.md`](component-specifications.md).
 
-This document identifies the exact ESP32 development board used by the
-CESS-UFF project and records the technical criteria behind its selection.
-
-Its purpose is to eliminate ambiguity between different ESP32 development
-boards, module versions, header layouts, and GPIO numbering conventions.
-
-This document complements:
-
-- `README.md`;
-- `docs/project-pinout.md`;
-- `docs/component-specifications.md`;
-- `docs/technical-specification.md`;
-- `diagram.json`;
-- `main.py`.
-
-## 2. Selected Development Board
+## 1. Selected board
 
 | Property | Project definition |
 |---|---|
 | Manufacturer | Espressif Systems |
 | Board name | ESP32-DevKitC V4 |
-| Wokwi component type | `board-esp32-devkit-c-v4` |
-| Header arrangement | 38 pins, 19 pins per side |
-| Microcontroller family | Original ESP32 family |
+| Wokwi part identifier | `board-esp32-devkit-c-v4` (`diagram.json` id `esp32`) |
+| Header arrangement | 38 pins, 19 per side (J2, J3) |
+| Microcontroller family | Original ESP32 |
 | Recommended physical module | ESP32-WROOM-32E |
-| Firmware environment | MicroPython for ESP32 |
-| Logic voltage | 3.3 V |
-
-The board is declared in `diagram.json` as:
+| Firmware | MicroPython for ESP32 |
+| Logic voltage | 3.3 V (not 5 V tolerant) |
 
 ```json
-{
-  "type": "board-esp32-devkit-c-v4",
-  "id": "esp32"
-}
+{ "type": "board-esp32-devkit-c-v4", "id": "esp32" }
 ```
 
-This declaration is part of the circuit definition and must not be replaced
-with another board type without reviewing the complete pin mapping.
+Must not be replaced with another board type without reviewing the
+complete pin mapping in §3 — see also the decision log in
+`technical-specification.md`, §16.
 
-## 3. Board Selection Rationale
+## 2. Why this board, and why "ESP32" alone is not enough
 
-The original project specification requires only:
+The assignment only requires "MicroPython for ESP32," not a specific
+board. The ESP32-DevKitC V4 was selected because it is an official
+Espressif board, natively supported by Wokwi, exposes every GPIO the
+project needs, and has complete manufacturer documentation — this
+maximizes reproducibility and avoids the ambiguity of generic ESP32
+clones (which vary in header count, module variant, and printed pin
+labels; see ESP32-S2/S3/C3/C6 families, NodeMCU-style boards, WROVER
+variants, etc.). For this reason the project is always documented as
+**"Espressif ESP32-DevKitC V4 / `board-esp32-devkit-c-v4`,"** never just
+"ESP32" or "ESP32 DevKit."
+
+The board and the radio module are different things: the DevKitC V4 is
+the carrier PCB (USB, regulator, headers); the module is the
+metal-shielded part with the actual chip, flash, and antenna. A DevKitC
+V4 can be fitted with different modules — see §4.
+
+## 3. GPIO-to-header mapping
+
+All source and circuit references use the **ESP32 GPIO number**, not the
+sequential physical position of a header terminal — e.g. `GPIO25` is the
+signal named GPIO25, not the 25th physical pin.
+
+| Function | Wokwi ID | Python variable/constant | GPIO | Header pin |
+|---|---|---|---:|---|
+| Red LED output | `red-led` | `red_led` / `RED_LED_PIN` | GPIO2 | J3-15 |
+| Green LED output | `green-led` | `green_led` / `GREEN_LED_PIN` | GPIO4 | J3-13 |
+| Push-button input | `push-button` | `push_button` / `BUTTON_PIN` | GPIO17 | J3-11 |
+| OLED I²C data | `oled-display` | `oled_display` / `OLED_SDA_PIN` | GPIO16 | J3-12 |
+| OLED I²C clock | `oled-display` | `oled_display` / `OLED_SCL_PIN` | GPIO25 | J2-9 |
+| OLED / push-button supply | — | — | 3V3 | J2-1 |
+
+```python
+RED_LED_PIN = 2
+GREEN_LED_PIN = 4
+BUTTON_PIN = 17
+OLED_SDA_PIN = 16
+OLED_SCL_PIN = 25
+```
+
+Wiring topology (see `component-specifications.md` for exact Wokwi part
+IDs and `diagram.json` for routed connections):
 
 ```text
-MicroPython for ESP32
+GPIO2  ── 220 Ω resistor ── red LED anode   · red LED cathode   ── GND
+GPIO4  ── 220 Ω resistor ── green LED anode · green LED cathode ── GND
+3V3    ── push-button ── GPIO17                       (active HIGH)
+GPIO25 = OLED SCL   GPIO16 = OLED SDA   3V3 = OLED VCC   GND = OLED GND
 ```
 
-It does not mandate a particular ESP32 development board.
+All peripherals share a common ground; the OLED and push-button use the
+3.3 V rail only.
 
-The ESP32-DevKitC V4 was selected because it:
+## 4. Module compatibility — WROOM vs. WROVER
 
-- is an official Espressif development board;
-- is supported natively by Wokwi;
-- exposes every GPIO required by the project;
-- has an unambiguous Wokwi component identifier;
-- has official manufacturer documentation;
-- provides a reproducible 38-pin header arrangement;
-- reduces ambiguity associated with generic ESP32 clone boards;
-- is suitable for both simulation and future physical implementation.
+This project requires GPIO16 and GPIO17 (OLED SDA and the push-button).
 
-The selection is therefore based on documentation, reproducibility, and
-pin availability rather than on a special performance requirement.
-
-The project functions would also be technically possible on other ESP32
-boards, provided that they:
-
-- support MicroPython;
-- expose GPIO2, GPIO4, GPIO16, GPIO17, and GPIO25;
-- provide 3.3 V logic;
-- support I²C communication;
-- do not reserve GPIO16 or GPIO17 for another hardware function;
-- have their circuit mapping reviewed and documented.
-
-## 4. Why a Generic "ESP32" Description Is Insufficient
-
-The term "ESP32 board" can refer to many different products, including:
-
-- ESP32-DevKitC revisions;
-- ESP32 DevKit v1 clone boards;
-- NodeMCU-style ESP32 boards;
-- boards with 30, 36, or 38 header terminals;
-- boards using WROOM modules;
-- boards using WROVER modules;
-- ESP32-S2, ESP32-S3, ESP32-C3, and ESP32-C6 families.
-
-These boards may differ in:
-
-- physical terminal position;
-- available GPIOs;
-- flash and PSRAM connections;
-- USB interface;
-- onboard LEDs;
-- boot circuitry;
-- module dimensions;
-- printed terminal labels.
-
-For this reason, the project must identify both the board and the GPIO
-numbers explicitly.
-
-The approved designation is:
-
-```text
-Espressif ESP32-DevKitC V4
-Wokwi part: board-esp32-devkit-c-v4
-```
-
-The project must not be documented only as:
-
-```text
-ESP32
-```
-
-or:
-
-```text
-ESP32 DevKit
-```
-
-## 5. Development Board and Module Are Different Items
-
-The development board and the radio module are separate levels of
-hardware identification.
-
-### 5.1 Development board
-
-The ESP32-DevKitC V4 includes:
-
-- USB connector;
-- USB-to-serial converter;
-- voltage regulation;
-- reset and boot buttons;
-- breakout headers;
-- support components;
-- an installed ESP32 module.
-
-### 5.2 ESP32 module
-
-The metal-shielded module contains the ESP32 system-on-chip and associated
-flash memory, antenna circuitry, and optional PSRAM depending on the
-module variant.
-
-A physical ESP32-DevKitC V4 can be fitted with different modules.
-
-For this project, the preferred module is:
-
-```text
-ESP32-WROOM-32E
-```
-
-This choice preserves GPIO16 and GPIO17 for the required OLED and
-push-button connections.
-
-## 6. WROOM and WROVER Compatibility
-
-The project uses:
-
-```text
-GPIO16 = OLED SDA
-GPIO17 = push-button input
-```
-
-On ESP32-WROOM-based boards, these GPIOs are normally available for
-general-purpose use.
-
-On ESP32-WROVER-based boards, GPIO16 and GPIO17 may be connected internally
-to the external PSRAM interface.
-
-Therefore:
-
-| Module family | Project compatibility |
+| Module family | Compatibility |
 |---|---|
-| ESP32-WROOM | Recommended |
+| ESP32-WROOM | Recommended — GPIO16/17 available for general use |
 | ESP32-WROOM-32E | Preferred physical target |
-| ESP32-WROVER | Not recommended for the current pin mapping |
-
-A WROVER-based board would require a pin reassignment and corresponding
-changes to:
-
-- `main.py`;
-- `diagram.json`;
-- the circuit wiring;
-- project documentation;
-- validation tests.
-
-Because GPIO16 and GPIO17 are predefined project assignments, changing
-them is outside the current design scope.
-
-## 7. Main Hardware Characteristics
-
-The selected board is based on the original ESP32 family.
-
-Relevant capabilities include:
-
-- 32-bit Xtensa processor architecture;
-- Wi-Fi connectivity in the 2.4 GHz band;
-- Bluetooth support;
-- digital input and output GPIOs;
-- configurable internal pull-up and pull-down resistors;
-- hardware I²C controllers;
-- hardware SPI controllers;
-- UART interfaces;
-- PWM generation;
-- hardware timers;
-- interrupt-capable GPIOs;
-- MicroPython support.
-
-The current project uses only:
-
-- digital outputs;
-- one digital input with an internal pull-down resistor;
-- one I²C bus (bit-banged via `SoftI2C`, see §12);
-- cooperative asynchronous software tasks.
-
-Wi-Fi, Bluetooth, ADC, DAC, PWM, and hardware timers are not required by
-the current specification.
-
-## 8. Electrical Characteristics Relevant to the Project
-
-### 8.1 Logic voltage
-
-ESP32 GPIOs operate at 3.3 V logic levels.
-
-The project must not apply 5 V directly to any GPIO.
-
-### 8.2 Peripheral power
-
-The SSD1306 OLED used by this project is powered from the board 3.3 V
-output.
-
-The push-button also connects GPIO17 to 3.3 V when pressed.
-
-### 8.3 Common reference
-
-All components must share a common ground.
-
-Without a common ground, the GPIO voltage levels and I²C signals do not
-have a valid shared electrical reference.
-
-### 8.4 LED current limiting
-
-Each external LED uses a 220 Ω series resistor.
-
-The resistor limits GPIO and LED current and must not be omitted in a
-physical implementation.
-
-## 9. Header Numbering Convention
-
-The ESP32-DevKitC V4 uses two 19-terminal headers:
-
-- J2;
-- J3.
-
-The project primarily references GPIO names rather than physical header
-sequence numbers.
-
-Examples:
-
-| Firmware reference | Board terminal |
-|---|---|
-| `Pin(2)` | GPIO2, J3-15 |
-| `Pin(4)` | GPIO4, J3-13 |
-| `Pin(17)` | GPIO17, J3-11 |
-| `Pin(16)` | GPIO16, J3-12 |
-| `Pin(25)` | GPIO25, J2-9 |
-
-GPIO numbering must not be inferred from the physical terminal order.
-
-## 10. Project Pin Summary
-
-| Project function | GPIO | Header position |
-|---|---:|---|
-| Red LED | GPIO2 | J3-15 |
-| Green LED | GPIO4 | J3-13 |
-| Push-button | GPIO17 | J3-11 |
-| OLED SDA | GPIO16 | J3-12 |
-| OLED SCL | GPIO25 | J2-9 |
-
-The authoritative project-specific wiring description is contained in:
-
-```text
-docs/project-pinout.md
-```
-
-## 11. GPIO Restrictions
-
-### 11.1 Internal flash signals
-
-The following terminals are reserved for internal SPI flash communication:
-
-- `CLK`;
-- `D0`;
-- `D1`;
-- `D2`;
-- `D3`;
-- `CMD`.
-
-They must not be used as project GPIOs.
-
-### 11.2 Input-only GPIOs
-
-On the original ESP32, GPIO34 through GPIO39 are input-only.
-
-They cannot drive LEDs or other outputs.
-
-These GPIOs also do not provide the same internal pull-up or pull-down
-capabilities as the general-purpose bidirectional pins.
-
-### 11.3 Bootstrapping GPIOs
-
-Some GPIOs are sampled during startup to select ESP32 boot configuration.
-
-These include GPIO0, GPIO2, GPIO5, GPIO12, and GPIO15.
-
-The project uses GPIO2 for the red LED because this assignment is part of
-the requirements.
-
-The external LED circuit must not force GPIO2 to an unsuitable state while
-the ESP32 is starting.
-
-### 11.4 Serial communication GPIOs
-
-GPIO1 and GPIO3 are commonly used by the primary UART for programming,
-diagnostic output, and the Wokwi serial monitor.
-
-They are not used by the project peripherals.
-
-## 12. OLED Interface
-
-The SSD1306 display uses I²C.
-
-The required signal assignment is:
-
-```text
-GPIO25 = SCL
-GPIO16 = SDA
-```
-
-This is a predefined project constraint rather than the common default
-ESP32 I²C mapping.
-
-The project assigns the I²C controller explicitly, using a software
-(bit-banged) bus rather than a hardware I²C peripheral — a defensive
-compatibility choice for Wokwi's simulated ESP32 that still needs to be
-confirmed against a live wokwi.com run (see `docs/technical-specification.md`,
-§16 decision log):
-
-```python
-i2c = SoftI2C(
-    scl=Pin(25),
-    sda=Pin(16),
-    freq=400_000,
-)
-```
-
-The use of I²C requires four OLED connections:
-
-- SCL;
-- SDA;
-- VCC;
-- GND.
-
-Only SCL and SDA are communication signals.
-
-VCC and GND provide power and electrical reference.
-
-## 13. I²C Versus SPI
-
-Some physical SSD1306 modules use SPI instead of I²C.
-
-A typical SPI connection may require:
-
-- SCK;
-- MOSI;
-- CS;
-- DC;
-- RST;
-- VCC;
-- GND.
-
-SPI can provide a higher transfer rate, but it requires more signal
-connections and additional GPIO assignments.
-
-The project does not use SPI because:
-
-- GPIO25 and GPIO16 were predefined for display communication;
-- the Wokwi `board-ssd1306` component uses I²C;
-- the display contains only short static messages;
-- the OLED is updated only when the stable button state changes;
-- the additional SPI throughput would not provide a meaningful functional
-  advantage for the current application.
-
-The use of I²C is therefore fully adequate for the project.
-
-## 14. Dynamic Display Update Strategy
-
-The OLED is not refreshed continuously.
-
-The framebuffer is transmitted:
-
-1. once during system initialization;
-2. whenever the debounced button state changes.
-
-This approach reduces:
-
-- I²C bus traffic;
-- processor occupation;
-- unnecessary display writes;
-- visible flickering;
-- interference with the red LED task;
-- unnecessary energy consumption.
-
-The strategy is especially appropriate because the messages remain static
-between button transitions.
-
-## 15. Asynchronous Software Architecture
-
-The firmware uses MicroPython `asyncio`.
-
-The architecture separates the system into cooperative tasks, including:
-
-- continuous red LED blinking;
-- periodic push-button sampling;
-- software debounce;
-- event-driven green LED control;
-- event-driven OLED updates.
-
-Blocking delays such as the following are intentionally avoided:
-
-```python
-time.sleep(0.5)
-```
-
-The project uses cooperative delays instead:
-
-```python
-await asyncio.sleep_ms(500)
-```
-
-The asynchronous approach was selected because it:
-
-- separates independent responsibilities;
-- improves readability;
-- improves maintainability;
-- simplifies future expansion;
-- prevents simple delays from freezing all functions;
-- accommodates possible I²C display latency;
-- allows additional sensors and actuators to be integrated later.
-
-## 16. Wokwi Representation
-
-The virtual board is defined by:
-
-```json
-"type": "board-esp32-devkit-c-v4"
-```
-
-The Wokwi simulation contains:
-
-- one ESP32-DevKitC V4;
-- one red LED;
-- one green LED;
-- two 220 Ω resistors;
-- one normally open push-button;
-- one SSD1306 I²C OLED.
-
-The circuit topology and all virtual connections are stored in:
-
-```text
-diagram.json
-```
-
-The Wokwi component IDs are:
-
-```text
-esp32
-red-led
-red-led-resistor
-green-led
-green-led-resistor
-push-button
-oled-display
-```
-
-## 17. Physical Implementation Compatibility
-
-A future physical implementation should use:
-
-```text
-Board: Espressif ESP32-DevKitC V4
-Module: ESP32-WROOM-32E
-Logic level: 3.3 V
-```
-
-A physically similar generic board must not be assumed to have an
-identical terminal layout.
-
-Before replacing the target board, verify:
-
-- the exact board model;
-- the module model;
-- the number of header terminals;
-- the printed GPIO labels;
-- GPIO16 and GPIO17 availability;
-- the 3.3 V supply location;
-- available GND terminals;
-- bootstrapping-pin behavior;
-- flash-reserved terminals.
-
-## 18. Reproducibility Requirements
-
-A developer reproducing the project must use the following authoritative
-configuration:
-
-```text
-Wokwi board:
-board-esp32-devkit-c-v4
-
-Firmware:
-MicroPython for ESP32
-
-Red LED:
-GPIO2
-
-Green LED:
-GPIO4
-
-Push-button:
-GPIO17, active HIGH, internal pull-down enabled
-
-OLED SDA:
-GPIO16
-
-OLED SCL:
-GPIO25
-
-OLED address:
-0x3C
-
-OLED size:
-128 × 64 pixels
-```
-
-Any deviation must be explicitly documented and validated.
-
-## 19. Required Technical Documentation
-
-The project repository must include or reference the following technical
-materials:
-
-1. ESP32-DevKitC V4 official user guide;
-2. ESP32-DevKitC V4 schematic;
-3. ESP32-DevKitC V4 PCB layout;
-4. ESP32-DevKitC V4 dimensional drawing;
-5. ESP32 datasheet;
-6. ESP32-WROOM-32E datasheet;
-7. Wokwi ESP32-DevKitC V4 component documentation;
-8. Wokwi diagram-format documentation;
-9. MicroPython ESP32 quick reference;
-10. MicroPython `machine.Pin` documentation;
-11. MicroPython `machine.I2C` documentation;
-12. MicroPython `asyncio` documentation.
-
-## 20. Official References
-
-### 20.1 Espressif ESP32-DevKitC V4 user guide
-
-```text
-https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32/esp32-devkitc/user_guide.html
-```
-
-### 20.2 ESP32 datasheet
-
-```text
-https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf
-```
-
-### 20.3 ESP32-WROOM-32E and ESP32-WROOM-32UE datasheet
-
-```text
-https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32e_esp32-wroom-32ue_datasheet_en.pdf
-```
-
-### 20.4 Wokwi ESP32-DevKitC V4 component
-
-```text
-https://docs.wokwi.com/parts/board-esp32-devkit-c-v4
-```
-
-### 20.5 Wokwi diagram format
-
-```text
-https://docs.wokwi.com/diagram-format
-```
-
-### 20.6 MicroPython ESP32 quick reference
-
-```text
-https://docs.micropython.org/en/latest/esp32/quickref.html
-```
-
-### 20.7 MicroPython `machine.Pin`
-
-```text
-https://docs.micropython.org/en/latest/library/machine.Pin.html
-```
-
-### 20.8 MicroPython `machine.I2C`
-
-```text
-https://docs.micropython.org/en/latest/library/machine.I2C.html
-```
-
-### 20.9 MicroPython `asyncio`
-
-```text
-https://docs.micropython.org/en/latest/library/asyncio.html
-```
-
-## 21. Board Identification Statement
-
-The following statement should be used in reports and submission
-documentation:
+| ESP32-WROVER | **Not recommended** — GPIO16/17 may be routed internally to PSRAM |
+
+A WROVER-based board would need a pin reassignment across `main.py`,
+`diagram.json`, the wiring, and this documentation. Since GPIO16/17 are
+predefined project requirements, that reassignment is out of scope here.
+
+## 5. Restricted / reserved GPIOs
+
+| Restriction | Pins | Why |
+|---|---|---|
+| Reserved for SPI flash | `CLK`, `D0`, `D1`, `D2`, `D3`, `CMD` | Internal flash communication; using them as GPIO can prevent the firmware from booting |
+| Input-only | GPIO34–GPIO39 | Cannot drive outputs; no internal pull-up/pull-down |
+| Bootstrapping | GPIO0, GPIO2, GPIO5, GPIO12, GPIO15 | Sampled at boot to select boot mode. GPIO2 is used here for the red LED (a required assignment) — the LED/resistor circuit does not force an external level on it, so it does not interfere with boot |
+| Primary UART | GPIO1, GPIO3 | Used for programming/diagnostic output and the Wokwi serial monitor; not used by project peripherals |
+
+## 6. Electrical characteristics
+
+- **Logic level:** 3.3 V. Never apply 5 V to a GPIO.
+- **Common ground:** every component (LEDs, button, OLED) must share the
+  same GND reference, or GPIO/I²C signal levels are undefined.
+- **LED current limiting:** each LED uses a 220 Ω series resistor; do not
+  omit it in a physical build.
+- **OLED interface:** I²C only, on GPIO25 (SCL) / GPIO16 (SDA) — this is a
+  predefined project requirement, not an optimization; see
+  `technical-specification.md` §6.3 for why I²C was chosen over SPI, and
+  `component-specifications.md` §2 for the driver/bus details (`SoftI2C`).
+
+## 7. Physical implementation checklist
+
+For a future real-hardware build (this project currently targets
+simulation only):
+
+- board is an ESP32-DevKitC V4 (or verified-compatible equivalent) fitted
+  with a WROOM, not WROVER, module;
+- OLED powered from 3.3 V; all grounds tied together;
+- each LED has its 220 Ω series resistor; red → GPIO2, green → GPIO4;
+- push-button between GPIO17 and 3V3, no external pull-up;
+- OLED SDA → GPIO16, OLED SCL → GPIO25;
+- nothing connected to `CLK`, `D0`–`D3`, `CMD`;
+- no GPIO receives 5 V.
+
+## 8. References
+
+**Espressif / MicroPython:**
+- [ESP32-DevKitC V4 user guide](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32/esp32-devkitc/user_guide.html)
+- [ESP32 datasheet](https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf)
+- [ESP32-WROOM-32E datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32e_esp32-wroom-32ue_datasheet_en.pdf)
+- [MicroPython ESP32 quick reference](https://docs.micropython.org/en/latest/esp32/quickref.html)
+- [`machine.Pin`](https://docs.micropython.org/en/latest/library/machine.Pin.html) · [`machine.I2C`](https://docs.micropython.org/en/latest/library/machine.I2C.html) · [`asyncio`](https://docs.micropython.org/en/latest/library/asyncio.html)
+
+**Wokwi:**
+- [`board-esp32-devkit-c-v4` component](https://docs.wokwi.com/parts/board-esp32-devkit-c-v4)
+- [`diagram.json` format](https://docs.wokwi.com/diagram-format)
+
+## 9. Board identification statement
+
+For use in reports and submission documentation:
 
 > The project targets the official Espressif ESP32-DevKitC V4 development
 > board, represented in Wokwi by `board-esp32-devkit-c-v4`. A physical

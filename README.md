@@ -7,11 +7,15 @@ button, simulated in [Wokwi](https://wokwi.com).
 > **Status:** this is the unified, consolidated version of the project. It
 > replaces three independent drafts previously kept in `g/`, `p/` and `c/`
 > (all removed after their reusable content was folded in here), merging
-> the best documentation, code and design decisions from each. This version
-> also fixes one confirmed circuit bug (an invalid push-button pin
-> reference, see design summary) and applies a defensive I2C fix that still
-> needs to be confirmed against a live wokwi.com run — **this version has
-> not yet been run in the Wokwi simulator and must be validated there.**
+> the best documentation, code and design decisions from each. It also
+> fixes one confirmed circuit bug (an invalid push-button pin reference,
+> see design summary) and, as of the first live wokwi.com run, one
+> confirmed **boot-loop bug**: a pinned MicroPython firmware `env` in
+> `diagram.json` (inherited from one of the drafts) made the board reset
+> forever before any code — not just this project's code — ever ran. It
+> has been removed; see `docs/technical-specification.md` §16. **The
+> `SoftI2C` fix is still unconfirmed** — re-run the simulation now that
+> boot succeeds to verify the OLED actually displays content.
 
 **Wokwi project link (circuit + simulation):** `<add the wokwi.com/projects/... link here after publishing>`
 **GitHub repository link:** `<GITHUB_REPOSITORY_URL>`
@@ -44,10 +48,9 @@ predefined project requirements, not the result of an interface
 optimization — see [`docs/technical-specification.md`](docs/technical-specification.md).
 Full per-component spec sheets (board, display, LEDs, resistors,
 push-button — exact Wokwi identifiers and pin names) are in
-[`docs/component-specifications.md`](docs/component-specifications.md), the
-GPIO-to-physical-header map, reserved flash pins, and a physical wiring
-checklist are in [`docs/project-pinout.md`](docs/project-pinout.md), and the
-full board/module identification and selection rationale is in
+[`docs/component-specifications.md`](docs/component-specifications.md), and
+the board/module identification, GPIO-to-physical-header map, reserved
+pins, and a physical wiring checklist are in
 [`docs/hardware-reference.md`](docs/hardware-reference.md).
 
 ## Repository structure
@@ -64,8 +67,7 @@ cess-uff/
 └── docs/
     ├── technical-specification.md   # requirements + design decision log
     ├── component-specifications.md  # per-component spec sheets (board, display, LEDs, ...)
-    ├── project-pinout.md            # GPIO-to-header map, wiring checklist, reserved pins
-    └── hardware-reference.md        # ESP32-DevKitC V4 board/module identification and rationale
+    └── hardware-reference.md        # board/module ID, GPIO-to-header map, wiring checklist
 ```
 
 ## Option A — Run it in the browser (fastest, no install)

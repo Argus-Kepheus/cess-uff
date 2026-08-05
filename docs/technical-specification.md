@@ -63,11 +63,8 @@ every other simulated part are kept in
 [`docs/component-specifications.md`](component-specifications.md) — one
 sheet per component, so identifiers and pin names stay unambiguous and don't
 have to be re-derived from `diagram.json` each time. The GPIO-to-physical-
-header mapping, reserved flash pins, and a physical wiring checklist for a
-future real-hardware build are kept separately in
-[`docs/project-pinout.md`](project-pinout.md). The full board/module
-identification, selection rationale, and why a generic "ESP32" description
-is insufficient are in
+header mapping, module compatibility, reserved pins, and a physical wiring
+checklist are kept in
 [`docs/hardware-reference.md`](hardware-reference.md).
 
 ## 4. Functional requirements
@@ -136,18 +133,9 @@ exception, kept in Portuguese per the assignment's explicit requirement.
 
 ### 6.1 Connection table
 
-| ESP32 pin | Connected device | Purpose |
-|---:|---|---|
-| GPIO 2 | 220 Ω resistor + red LED anode | Red LED output |
-| GPIO 4 | 220 Ω resistor + green LED anode | Green LED output |
-| GPIO 17 | One push-button terminal | Active-high input |
-| GPIO 25 | OLED SCL | I2C clock |
-| GPIO 16 | OLED SDA | I2C data |
-| 3.3 V | Push-button opposite terminal + OLED VCC | Supply / HIGH source |
-| GND | Both LED cathodes + OLED GND | Common reference |
-
-A current-limiting resistor (220 Ω) is placed in series with each LED, sized
-for the ESP32's 3.3 V logic level.
+The full GPIO-to-header connection table and wiring diagrams are kept in
+[`docs/hardware-reference.md`](hardware-reference.md), §3, to avoid
+maintaining the same pin table in two places.
 
 ### 6.2 Button input conditioning
 
@@ -322,6 +310,22 @@ simulation, then restore it.
 button logic keep working. Restore the correct circuit before final
 submission.
 
+### TC-07 — Boot sanity check (no application code involved)
+
+**Action:** before trusting any application-level debugging, load a
+trivial one-GPIO script (e.g. blink a single LED with a plain blocking
+loop, no `asyncio`, no OLED, no button) as `main.py` and run it.
+**Expected:** the serial monitor shows a single `POWERON_RESET` boot
+banner and then the script's own output; the LED blinks.
+**Failure signature to watch for:** the console instead shows the ROM
+boot banner repeating over and over (`POWERON_RESET` once, then
+`SW_RESET` indefinitely) with no application output ever appearing. This
+means MicroPython itself never starts — the fault is at the firmware/board
+configuration level (see the `attrs.env` decision-log entry in §16), not in
+application code, wiring of individual peripherals, or GPIO assignment.
+When this signature appears, check `diagram.json`'s `esp32` part `attrs`
+for a pinned `env` value first.
+
 ## 13. Wokwi, VS Code and GitHub workflow
 
 The GitHub repository is the version-controlled source of truth. Wokwi
@@ -350,8 +354,7 @@ submitted behavior interactively with no installation.
 | `.gitignore` | Excludes downloaded firmware and generated files |
 | `docs/technical-specification.md` | This document |
 | `docs/component-specifications.md` | Per-component specification sheets (board, display, LEDs, resistors, push-button) |
-| `docs/project-pinout.md` | GPIO-to-physical-header map, reserved flash pins, module compatibility, physical wiring checklist |
-| `docs/hardware-reference.md` | ESP32-DevKitC V4 board/module identification, selection rationale, electrical characteristics |
+| `docs/hardware-reference.md` | Board/module identification, GPIO-to-header map, reserved pins, electrical characteristics, wiring checklist |
 
 ## 15. Acceptance criteria
 
@@ -386,6 +389,7 @@ a row, keep the reasoning short and explicit.
 | Button sampled every 5 ms, accepted after 30 ms stable | Fast enough to feel instantaneous; the 30 ms window is the actual debounce guard, sampling itself is not the filter. | Coarser polling (e.g. 50 ms) with no separate acceptance window — simpler but couples sampling rate to debounce time |
 | `machine.SoftI2C` instead of the hardware `machine.I2C` peripheral | Bit-banged I2C is a commonly cited, low-risk compatibility choice for arbitrary GPIO pairs on Wokwi's simulated ESP32. One of the three original drafts already used `SoftI2C` successfully; the other two used the hardware `I2C` peripheral on the same GPIO 25/16 pins. Standardizing on `SoftI2C` removes hardware-I2C peripheral/pin-mapping compatibility as a variable while debugging the reported wokwi.com issues. **This must still be confirmed against a live wokwi.com run** — see §12 verification plan; if hardware `I2C` turns out not to be the cause, this row should be revised. | Hardware `I2C` (kept as the fallback to re-test if `SoftI2C` does not resolve the reported issue) |
 | `push-button` wired with pin names `1.l` / `2.l` | These are the actual pin names exposed by the Wokwi `wokwi-pushbutton` part. One of the three original drafts used `1.R` / `2.R` (wrong case, wrong side), which Wokwi cannot resolve — the connection silently fails and the button never registers a press in that simulation. | `1.R` / `2.R` naming (rejected: invalid pin reference) |
+| `esp32` board part uses `"attrs": {}` (no pinned firmware `env`) | **Confirmed root cause of a live wokwi.com failure**: pinning `"env": "micropython-20240602-v1.23.0"` (carried over from the `p/` draft) caused an infinite boot loop — the console showed repeated `POWERON_RESET` / `SW_RESET` cycles and MicroPython never started, so *nothing* ran, not even a trivial one-GPIO test script (see TC-07). Removing the pin and letting Wokwi select its default/current MicroPython build resolved it. This also retroactively confirms this exact line was very likely the original issue reported against the `p/` draft before consolidation. | Pinning a specific firmware `env` string for reproducibility (rejected: the specific string used was invalid/unsupported and silently broke boot, with no error surfaced other than the reset loop) |
 
 ## 17. Future work (physical hardware phase, out of scope here)
 
