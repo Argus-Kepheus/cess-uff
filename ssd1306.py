@@ -108,6 +108,12 @@ class SSD1306:
     def line(self, x0, y0, x1, y1, col):
         self.framebuf.line(x0, y0, x1, y1, col)
 
+    def hline(self, x, y, w, col):
+        self.framebuf.hline(x, y, w, col)
+
+    def vline(self, x, y, h, col):
+        self.framebuf.vline(x, y, h, col)
+
     def rect(self, x, y, w, h, col):
         self.framebuf.rect(x, y, w, h, col)
 

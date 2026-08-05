@@ -56,7 +56,7 @@ physical wiring checklist, see
 | I2C address | `0x3C` (`diagram.json` attr `i2cAddress`) |
 | Supply | 3.3 V and GND |
 | Driver | `ssd1306.py` (`SSD1306_I2C` class) |
-| MicroPython bus object | `machine.SoftI2C` — see `technical-specification.md`, §16 decision log |
+| MicroPython bus object | `machine.I2C(0, ...)` (hardware) — confirmed working on wokwi.com by `tests/05_oled_basic.py` and `tests/06_oled_full_diagnostic.py`; see `technical-specification.md`, §16 decision log |
 
 ### Pins used in this project
 

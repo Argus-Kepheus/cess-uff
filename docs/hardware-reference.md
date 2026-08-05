@@ -115,7 +115,8 @@ predefined project requirements, that reassignment is out of scope here.
 - **OLED interface:** I²C only, on GPIO25 (SCL) / GPIO16 (SDA) — this is a
   predefined project requirement, not an optimization; see
   `technical-specification.md` §6.3 for why I²C was chosen over SPI, and
-  `component-specifications.md` §2 for the driver/bus details (`SoftI2C`).
+  `component-specifications.md` §2 for the driver/bus details (hardware
+  `machine.I2C`).
 
 ## 7. Physical implementation checklist
 

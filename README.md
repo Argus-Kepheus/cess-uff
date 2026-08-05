@@ -9,13 +9,15 @@ button, simulated in [Wokwi](https://wokwi.com).
 > (all removed after their reusable content was folded in here), merging
 > the best documentation, code and design decisions from each. It also
 > fixes one confirmed circuit bug (an invalid push-button pin reference,
-> see design summary) and, as of the first live wokwi.com run, one
+> see design summary) and, as of the first live wokwi.com runs, one
 > confirmed **boot-loop bug**: a pinned MicroPython firmware `env` in
 > `diagram.json` (inherited from one of the drafts) made the board reset
 > forever before any code — not just this project's code — ever ran. It
-> has been removed; see `docs/technical-specification.md` §16. **The
-> `SoftI2C` fix is still unconfirmed** — re-run the simulation now that
-> boot succeeds to verify the OLED actually displays content.
+> has been removed; see `docs/technical-specification.md` §16. The
+> [`tests/`](tests/README.md) scripts have since confirmed every GPIO,
+> `asyncio`, and hardware I2C all work on wokwi.com — `main.py` was
+> reverted from the earlier defensive `SoftI2C` workaround back to
+> hardware `I2C` accordingly.
 
 **Wokwi project link (circuit + simulation):** `<add the wokwi.com/projects/... link here after publishing>`
 **GitHub repository link:** `<GITHUB_REPOSITORY_URL>`
@@ -64,11 +66,25 @@ cess-uff/
 ├── README.md
 ├── LICENSE                          # CC0 1.0 Universal
 ├── .gitignore
-└── docs/
-    ├── technical-specification.md   # requirements + design decision log
-    ├── component-specifications.md  # per-component spec sheets (board, display, LEDs, ...)
-    └── hardware-reference.md        # board/module ID, GPIO-to-header map, wiring checklist
+├── docs/
+│   ├── technical-specification.md   # requirements + design decision log
+│   ├── component-specifications.md  # per-component spec sheets (board, display, LEDs, ...)
+│   └── hardware-reference.md        # board/module ID, GPIO-to-header map, wiring checklist
+└── tests/                           # standalone diagnostic scripts, not part of the deliverable
+    ├── README.md                    # what each test validates, and how to run it
+    ├── 01_red_led_basic.py
+    ├── 02_red_led_blink.py
+    ├── 03_red_led_asyncio.py
+    ├── 04_push_button_green_led.py
+    ├── 05_oled_basic.py
+    └── 06_oled_full_diagnostic.py
 ```
+
+Before trying the full `main.py`, consider running the scripts in
+[`tests/`](tests/README.md) — they validate each GPIO/component in
+isolation, in increasing order of complexity, which makes it much faster
+to localize a wiring or firmware problem than debugging the whole
+application at once.
 
 ## Option A — Run it in the browser (fastest, no install)
 
@@ -150,12 +166,13 @@ Steps:
 - **I2C, not SPI, for the OLED:** imposed by the project's own 2-pin
   specification (SCL = GPIO 25, SDA = GPIO 16), not chosen for technical
   superiority — SPI would need 4–5 lines but was never an option here.
-- **`machine.SoftI2C`, not the hardware `machine.I2C` peripheral:** a
-  bit-banged I2C bus is a commonly cited, low-risk compatibility choice for
-  arbitrary GPIO pairs on Wokwi's simulated ESP32. Standardizing on it
-  removes one variable while tracking down the wokwi.com issues reported
-  against the original drafts — **this still needs to be confirmed in a
-  live run** (see `docs/technical-specification.md`, decision log).
+- **Hardware `machine.I2C`, not `SoftI2C`:** an earlier revision adopted
+  bit-banged `SoftI2C` as an unconfirmed, purely defensive compatibility
+  choice while tracking down the wokwi.com issues reported against the
+  original drafts. `tests/05_oled_basic.py` and
+  `tests/06_oled_full_diagnostic.py` have since confirmed hardware `I2C`
+  works fine on wokwi.com, so `main.py` reverted to it (see
+  `docs/technical-specification.md`, decision log).
 - **`push-button` wiring uses the documented `1.l`/`2.l` pin names:** one of
   the original drafts referenced the pushbutton's pins as `1.R`/`2.R`
   (wrong case, wrong side), which Wokwi silently fails to resolve — the

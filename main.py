@@ -12,7 +12,7 @@ rationale behind every decision below.
 
 import asyncio
 import time
-from machine import Pin, SoftI2C
+from machine import Pin, I2C
 
 from ssd1306 import SSD1306_I2C
 
@@ -47,10 +47,13 @@ green_led = Pin(GREEN_LED_PIN, Pin.OUT, value=0)
 # as required by the specification. No external resistor is used.
 push_button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_DOWN)
 
-# A software (bit-banged) I2C bus is used instead of the hardware I2C
-# peripheral. It works reliably with any GPIO pair on Wokwi's simulated
-# ESP32, which is what lets SCL/SDA be pinned to GPIO 25/16 as required.
-i2c = SoftI2C(
+# Hardware I2C bus 0, on the mandatory OLED pins. Confirmed working on
+# Wokwi's simulated ESP32 by tests/05_oled_basic.py and
+# tests/06_oled_full_diagnostic.py (see docs/technical-specification.md,
+# section 16) -- an earlier revision used machine.SoftI2C as an
+# unconfirmed defensive compatibility choice; that is no longer needed.
+i2c = I2C(
+    0,
     scl=Pin(OLED_SCL_PIN),
     sda=Pin(OLED_SDA_PIN),
     freq=OLED_I2C_FREQUENCY_HZ,

@@ -1,14 +1,19 @@
-"""
-Temporary SSD1306 OLED diagnostic test.
+"""Test 6/6 — SSD1306 OLED full diagnostic suite.
 
-Purpose:
-    Test the main capabilities of the 128x64 SSD1306 OLED connected
-    through I2C, including full-screen pixel activation, pixel addressing,
-    drawing primitives, text, inversion, contrast, display power control,
-    and framebuffer scrolling.
+The most complete check: exercises full-screen pixel activation, pixel
+addressing, drawing primitives, text, inversion, contrast, display power
+control, and framebuffer scrolling on the 128x64 SSD1306 OLED. See
+tests/README.md for how to run this on wokwi.com.
 
-This file is intended only for hardware and simulation diagnostics.
-Restore the official project main.py after completing the test.
+Uses the same hardware machine.I2C peripheral as main.py (see
+docs/technical-specification.md, section 16 -- an earlier revision used
+machine.SoftI2C defensively; this test's passing result on wokwi.com is
+part of the evidence that confirmed hardware I2C works and made that
+workaround unnecessary).
+
+Requires the hline()/vline() methods on ssd1306.SSD1306, added
+specifically to support this test (the upstream driver forwards them to
+framebuf.FrameBuffer, which supports them natively).
 
 Expected connections:
     GPIO 25 -> OLED SCL
