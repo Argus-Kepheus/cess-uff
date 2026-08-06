@@ -57,7 +57,7 @@ elétricas e a lista de verificação da montagem física, consulte
 | Endereço I2C | `0x3C`, definido pelo atributo `i2cAddress` em `diagram.json` |
 | Alimentação | 3,3 V e GND |
 | Controlador de software | `ssd1306.py`, classe `SSD1306_I2C` |
-| Objeto de barramento no MicroPython | `machine.SoftI2C`; consulte o registro de decisões em `technical-specification.md`, §16 |
+| Objeto de barramento no MicroPython | `machine.I2C(0, ...)` (hardware) — confirmado em funcionamento no wokwi.com por `tests/05_oled_basic.py` e `tests/06_oled_full_diagnostic.py`; consulte o registro de decisões em `technical-specification.md`, §16 |
 
 ### Terminais usados neste projeto
 

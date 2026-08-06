@@ -10,7 +10,7 @@
 #   2. Place the downloaded file in this project's root folder.
 #   3. Update the "firmware" path below to match the downloaded file name.
 #
-# See docs/technical-specification.md and README.md for the full setup.
+# See docs/EN/technical-specification.md and README.md for the full setup.
 
 [wokwi]
 version = 1

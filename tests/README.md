@@ -27,7 +27,7 @@ run 6 when you specifically need to debug OLED rendering.
 Test 3 exists specifically because `import asyncio` was one of the
 suspected — but, until this test existed, never isolated — causes behind
 a boot-loop bug found while validating this project (see
-`docs/technical-specification.md`, §16 decision log). Tests 1–2 alone
+`docs/EN/technical-specification.md`, §16 decision log). Tests 1–2 alone
 cannot rule asyncio in or out, since they never import it.
 
 ## How to run one of these on wokwi.com
@@ -52,7 +52,7 @@ cannot rule asyncio in or out, since they never import it.
   to defensively use `machine.SoftI2C` instead, but these two tests
   passing on wokwi.com confirmed hardware I2C works fine, so `main.py` has
   since been reverted to hardware `I2C` too (see
-  `docs/technical-specification.md`, §16 decision log).
+  `docs/EN/technical-specification.md`, §16 decision log).
 - Wokwi's simulated push-button does not bounce, so test 4 has no
   debounce logic — that is intentional, not an oversight (see
-  `docs/technical-specification.md`, §6.2).
+  `docs/EN/technical-specification.md`, §6.2).

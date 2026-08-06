@@ -11,7 +11,7 @@ variable, separate from the GPIO/wiring already confirmed by tests 1-2.
 If tests 1-2 pass but this one does not, the fault is in asyncio /
 firmware support for it, not in the LED circuit -- this was one of the
 suspected (but previously untested in isolation) causes behind the
-boot-loop bug documented in docs/technical-specification.md, section 16.
+boot-loop bug documented in docs/EN/technical-specification.md, section 16.
 
 Expected: identical behavior to test 2 -- the red LED toggles every
 500 ms, continuously -- but driven by an asyncio task instead of a plain

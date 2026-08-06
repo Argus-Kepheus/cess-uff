@@ -8,7 +8,7 @@ Deliberately uses a plain blocking loop (no asyncio, no ssd1306 import,
 no red LED, no debounce) so a failure here can only mean a GPIO/wiring
 problem with the button or the green LED, not an application-logic issue.
 Wokwi's simulated push-button does not bounce, so debounce is not needed
-for this isolated hardware check (see docs/technical-specification.md,
+for this isolated hardware check (see docs/EN/technical-specification.md,
 section 6.2).
 
 Expected: button released -> green LED OFF, console prints

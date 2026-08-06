@@ -17,14 +17,8 @@
 | Idioma desta versão | Português do Brasil |
 | Mensagens exibidas no OLED | Português, conforme requisito explícito |
 
-Esta versão consolida os requisitos e as decisões de engenharia registradas ao
-longo do desenvolvimento. O arquivo `technical-specification.md` fornecido no
-arquivo-fonte em inglês estava truncado durante a §3.1; por isso, as seções
-posteriores desta versão foram reconstruídas com base nos requisitos já
-consolidados no circuito, nas especificações dos componentes, no código e no
-histórico de decisões do projeto.
-
-Comentários de outros projetistas podem ser incorporados em revisões futuras,
+Este documento consolida os requisitos e as decisões de engenharia do
+projeto. Comentários de outros projetistas podem ser incorporados em revisões futuras,
 desde que o comportamento obrigatório e a rastreabilidade das decisões sejam
 preservados. Consulte a §7.
 
@@ -283,16 +277,23 @@ Essa atribuição não foi escolhida por ser o mapeamento padrão do ESP32 nem p
 um estudo de desempenho. Ela deve ser declarada explicitamente no código, no
 circuito e na documentação.
 
-A versão consolidada utiliza `machine.SoftI2C`, que permite declarar os sinais
-de forma explícita:
+A versão consolidada utiliza `machine.I2C` (barramento de hardware), que
+declara os sinais de forma explícita:
 
 ```python
-i2c = SoftI2C(
+i2c = I2C(
+    0,
     scl=Pin(OLED_SCL_PIN),
     sda=Pin(OLED_SDA_PIN),
     freq=400_000,
 )
 ```
+
+Uma revisão anterior utilizava `machine.SoftI2C` de forma defensiva, sem
+confirmação de que fosse necessário. A execução bem-sucedida de
+`tests/05_oled_basic.py` e `tests/06_oled_full_diagnostic.py` no wokwi.com,
+ambos com `machine.I2C` de hardware, confirmou que essa substituição era
+desnecessária; consulte a §16.
 
 O display também necessita de VCC e GND. Esses dois terminais são conexões de
 alimentação, e não sinais de comunicação.
@@ -475,13 +476,12 @@ Atraso bloqueante pode ser usado somente neste teste temporário, pois o objetiv
 
 Critérios:
 
-- `i2c.scan()` detecta o endereço decimal 60, equivalente a `0x3C`;
+- `i2c.scan()` detecta o endereço `0x3C`;
 - todos os pixels acendem e apagam;
 - padrões quadriculados complementares são exibidos;
 - linhas horizontais e verticais percorrem toda a tela;
 - pixels, linhas, retângulos e texto são renderizados;
-- inversão, contraste e controle de energia respondem;
-- o teste pode ser reiniciado por pulso no botão do GPIO17.
+- inversão, contraste e controle de energia respondem.
 
 ### 14.3 Teste do botão e do LED verde
 
@@ -534,7 +534,7 @@ Em uma montagem física devem ser considerados:
 | LED vermelho | GPIO2, alternância a cada 500 ms |
 | LED verde | GPIO4, acompanha o estado estável do botão |
 | OLED | SSD1306 128 × 64, endereço `0x3C` |
-| Barramento do OLED | `machine.SoftI2C` |
+| Barramento do OLED | `machine.I2C` (hardware); `SoftI2C` foi adotado defensivamente numa revisão anterior e revertido após confirmação em `tests/05_oled_basic.py` e `tests/06_oled_full_diagnostic.py` |
 | Mapeamento OLED | GPIO25 = SCL; GPIO16 = SDA, por predefinição |
 | Atualização OLED | Somente na inicialização e nas transições estáveis |
 | Versão do firmware no `diagram.json` | Não fixar `attrs.env`; usar a versão padrão/atual do Wokwi |

@@ -7,7 +7,7 @@ of a push button. Cooperative asyncio tasks prevent timing delays from
 blocking the complete application and keep the red LED blinking
 independently from the button-monitoring logic.
 
-See docs/technical-specification.md for the full requirements and the
+See docs/EN/technical-specification.md for the full requirements and the
 rationale behind every decision below.
 """
 
@@ -50,7 +50,7 @@ push_button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_DOWN)
 
 # Hardware I2C bus 0, on the mandatory OLED pins. Confirmed working on
 # Wokwi's simulated ESP32 by tests/05_oled_basic.py and
-# tests/06_oled_full_diagnostic.py (see docs/technical-specification.md,
+# tests/06_oled_full_diagnostic.py (see docs/EN/technical-specification.md,
 # section 16) -- an earlier revision used machine.SoftI2C as an
 # unconfirmed defensive compatibility choice; that is no longer needed.
 i2c = I2C(

@@ -14,11 +14,10 @@
 | Document language | English |
 | User-visible OLED messages | Portuguese, as explicitly required |
 
-This document consolidates the requirements and engineering decisions from
-the three independent drafts previously developed in `g/`, `p/` and `c/`.
-Comments from additional collaborators may be integrated in later revisions
-provided that the mandatory behavior and traceability described here are
-preserved. See §7 for the process.
+This document consolidates the project's requirements and engineering
+decisions. Comments from additional collaborators may be integrated in
+later revisions provided that the mandatory behavior and traceability
+described here are preserved. See §7 for the process.
 
 ## 2. Objective
 
@@ -96,9 +95,12 @@ checklist are kept in
 - Controller: SSD1306 · Resolution: 128 × 64 · Interface: I2C · Address: `0x3C`
 - SCL: GPIO 25 · SDA: GPIO 16 · Supply: 3.3 V and GND
 
-The I2C interface and pin mapping are mandatory predefined requirements —
-GPIO 25 as SCL and GPIO 16 as SDA were not chosen through an optimization
-study (see §6.3).
+The original assignment only requires the OLED to show the messages
+according to the button state — it does not specify a communication
+interface or pins. The I2C interface and the GPIO 25 (SCL) / GPIO 16 (SDA)
+mapping were fixed by the candidate before development started, not chosen
+through an optimization study, and then treated as a fixed predefined
+assignment for the rest of the project (see §6.3).
 
 ### FR-05 — OLED content
 
