@@ -220,18 +220,20 @@ Uma organização representativa da aplicação é mostrada a seguir:
 
 \begin{lstlisting}[caption={Estrutura lógica resumida do programa.},label={lst:estrutura}]
 async def blink_red_led():
-    """Toggle the red LED every 500 milliseconds."""
+    """Toggle the red LED every 500 ms, independent of every other task."""
     while True:
         red_led.value(not red_led.value())
-        await asyncio.sleep_ms(500)
-async def monitor_push_button():
-    """Read, debounce, and apply stable button-state changes."""
+        await asyncio.sleep_ms(RED_LED_BLINK_INTERVAL_MS)
+
+async def monitor_button(initial_state):
+    """Sample, debounce, and apply stable button-state changes."""
     ...
+
 async def main():
-    await asyncio.gather(
-        blink_red_led(),
-        monitor_push_button(),
-    )
+    initial_state = bool(push_button.value())
+    apply_button_state(initial_state)
+    asyncio.create_task(blink_red_led())
+    await monitor_button(initial_state)
 \end{lstlisting}
 
 Este trecho é uma síntese da arquitetura; o código completo e executável está disponível no repositório.
@@ -300,7 +302,7 @@ O desenvolvimento foi acompanhado por testes progressivos. A separação dos sub
 
   \item \textbf{Teste isolado do botão e do LED verde:} Amostrou o GPIO~17 periodicamente e refletiu o estado lido no GPIO~4, sem qualquer dependência do LED vermelho ou do OLED. O objetivo foi confirmar a fiação do botão, o resistor interno de redução e o comportamento ativo em nível alto isoladamente.
 
-  \item \textbf{Teste básico do OLED:} Inicializou o barramento I\textsuperscript{2}C em GPIO~25 e GPIO~16, realizou \texttt{i2c.scan()} e confirmou a detecção do endereço decimal 60, equivalente a \texttt{0x3C}. Em seguida, apresentou uma mensagem simples.
+  \item \textbf{Teste básico do OLED:} Inicializou o barramento I\textsuperscript{2}C em GPIO~25 e GPIO~16, confirmou a detecção do endereço \texttt{0x3C} por meio de \texttt{i2c.scan()} e apresentou uma mensagem simples.
 
   \item \textbf{Diagnóstico gráfico do SSD1306:} Exercitou todos os pixels ligados e desligados, padrões quadriculados complementares, varreduras horizontais e verticais, grade, pixels individuais, linhas, retângulos, áreas preenchidas, texto, inversão, contraste, desligamento, religamento e deslocamento do quadro.
 
@@ -316,8 +318,8 @@ A Figura~\ref{fig:circuito} apresenta o estado atual do circuito no Wokwi. As co
 \begin{figure}[htbp]
   \centering
   \includegraphics[
-    width=0.9\textwidth,
-    height=0.594\textheight,
+    width=0.72\textwidth,
+    height=0.475\textheight,
     keepaspectratio
   ]{figures/circuito-wokwi.png}
   \caption{Circuito do projeto no Wokwi: ESP32-DevKitC V4, OLED SSD1306, botão e dois LEDs.}
@@ -339,8 +341,8 @@ A entrega é complementada por dois meios de acesso: a simulação pública no W
   \item Projeto no Wokwi: \url{\WokwiURL}
   \item Repositório no GitHub: \url{\GitHubURL}
   \item Guia da ESP32-DevKitC V4: \url{https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32/esp32-devkitc/user_guide.html}
-  \item Referência rápida do MicroPython para ESP32: \url{https://docs.micropython.org/en/latest/esp32/quickref.html}
-  \item Biblioteca \texttt{asyncio} do MicroPython: \url{https://docs.micropython.org/en/latest/library/asyncio.html}
+  \item MicroPython para ESP32: \url{https://docs.micropython.org/en/latest/esp32/quickref.html}
+  \item Documentação da \texttt{asyncio}: \url{https://docs.micropython.org/en/latest/library/asyncio.html}
   \item Componente SSD1306 do Wokwi: \url{https://docs.wokwi.com/parts/board-ssd1306}
 \end{itemize}
 

@@ -195,80 +195,44 @@
 }
 
 \alertcard{greenAccent}{Resposta ao Botão (GPIO 17)}{
-  \textbf{1. Botão solto (LOW):}
-  \begin{itemize}
-    \item LED Verde: \textbf{APAGADO}
-    \item OLED: \texttt{"Boa sorte!"}
-  \end{itemize}
-
-  \textbf{2. Botão pressionado (HIGH):}
-  \begin{itemize}
-    \item LED Verde: \textbf{ACESO}
-    \item OLED: \texttt{"Consegui"}
-  \end{itemize}
+  \begin{tabular}{@{}lll@{}}
+    \scriptsize\textbf{Botão} & \scriptsize\textbf{LED Verde} & \scriptsize\textbf{OLED} \\
+    \scriptsize Solto (LOW) & \scriptsize Apagado & \scriptsize\texttt{"Boa sorte!"} \\
+    \scriptsize Pressionado & \scriptsize Aceso & \scriptsize\texttt{"Consegui"} \\
+  \end{tabular}
 }
 
 \card{Duas Tarefas, Nunca Bloqueantes}{
-  O programa usa exclusivamente \textbf{\texttt{asyncio}} do MicroPython, em vez de um superlaço (\textit{superloop}) com \texttt{time.sleep()}. As duas tarefas acima rodam como \textbf{corrotinas} sob escalonamento cooperativo, e nenhuma bloqueia a outra: o piscar do LED vermelho nunca atrasa a resposta ao botão, nem a leitura do botão interrompe o LED vermelho.
+  Exclusivamente \textbf{\texttt{asyncio}} do MicroPython, sem superlaço (\textit{superloop}) nem \texttt{time.sleep()}: as duas tarefas acima rodam como \textbf{corrotinas} cooperativas, e nenhuma bloqueia a outra.
 }
-\newpage
-
-% ------------------------------------------------------------------------------
-% SLIDE 5: Atualização Dinâmica do OLED
-% ------------------------------------------------------------------------------
-\slideheader{Atualização Dinâmica}
 
 \alertcard{accentColor}{OLED: Atualização Dinâmica}{
-  O mostrador \textbf{não} é redesenhado a cada iteração: é atualizado apenas quando o estado \textbf{estável} do botão muda (validado por antirrepique de software, \(\sim\)30~[ms]).
-  \begin{itemize}
-    \item Evita tráfego I\textsuperscript{2}C desnecessário.
-    \item Elimina a cintilação (\textit{flickering}).
-    \item O antirrepique dispensa filtro RC externo; na simulação Wokwi é mantido como boa prática, já que o botão simulado não tem repique real.
-  \end{itemize}
+  Atualizado apenas quando o estado \textbf{estável} do botão muda -- evita tráfego I\textsuperscript{2}C desnecessário e cintilação (\textit{flickering}).
 }
 \newpage
 
 % ------------------------------------------------------------------------------
-% SLIDE 7: Validação e Testes
+% SLIDE 5: Validação e Conclusão
+% (slides "Validação" e "Conclusão" da versão anterior, fundidos)
 % ------------------------------------------------------------------------------
-\slideheader{Validação}
+\slideheader{Validação \& Conclusão}
 
 \card{Estratégia de Testes Isolados}{
-  Desenvolvimento com testes progressivos em \texttt{tests/}, do mais simples ao mais completo:
-  \begin{enumerate}
-    \item \textbf{LED Vermelho:} ciclo de 500~[ms], depois repetido com \texttt{asyncio}.
-    \item \textbf{Botão + LED Verde:} nível lógico e resistor interno de \textit{pull-down}.
-    \item \textbf{OLED I\textsuperscript{2}C:} varredura de endereço (\texttt{0x3C}) e testes gráficos completos.
-    \item \textbf{Integração Final:} execução concorrente em \texttt{main.py}.
-  \end{enumerate}
+  Testes progressivos em \texttt{tests/}, do mais simples ao mais completo: LED vermelho (bloqueante e com \texttt{asyncio}), botão + LED verde, OLED I\textsuperscript{2}C (varredura e diagnóstico gráfico) e integração final em \texttt{main.py}.
 }
-\newpage
-
-% ------------------------------------------------------------------------------
-% SLIDE 8: Conclusão \& Links
-% ------------------------------------------------------------------------------
-\slideheader{Conclusão}
 
 \alertcard{greenAccent}{Requisitos Atendidos}{
   \begin{itemize}
     \item[\okmark] LED vermelho: ciclo de 500~[ms], contínuo e não bloqueante.
-    \item[\okmark] LED verde: reflete o estado do botão (GPIO~17, \texttt{PULL\_DOWN}).
+    \item[\okmark] LED verde: reflete o estado do botão.
     \item[\okmark] OLED: mensagem correta por estado, com atualização dinâmica.
-    \item[\okmark] Execução concorrente via \texttt{asyncio}, sem \texttt{time.sleep()}.
+    \item[\okmark] Execução concorrente via \texttt{asyncio}.
   \end{itemize}
 }
 
-\begin{center}
-  \vspace{2mm}
-  {\small \textbf{\color{primaryColor} Links para Acesso:}}\\[4pt]
-
-  \alertcard{accentColor}{Simulação no Wokwi}{
-    \url{\WokwiURL}
-  }
-
-  \alertcard{primaryColor}{Repositório GitHub}{
-    \url{\GitHubURL}
-  }
-\end{center}
+\alertcard{primaryColor}{Links para Acesso}{
+  Wokwi: \url{\WokwiURL}\\
+  GitHub: \url{\GitHubURL}
+}
 
 \end{document}
