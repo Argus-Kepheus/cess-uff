@@ -11,12 +11,13 @@
 \setmonofont{Latin Modern Mono}
 
 \usepackage[brazil]{babel}
+\usepackage{csquotes}
 \usepackage{geometry}
 \geometry{
   top=2.2cm,
   bottom=2.2cm,
-  left=2.5cm,
-  right=2.5cm
+  left=1cm,
+  right=1cm
 }
 
 \usepackage{microtype}
@@ -93,7 +94,8 @@
 \lstset{style=pythonstyle}
 
 \newcommand{\ProjectTitle}{Sistema de sinalização com ESP32, LEDs, botão e OLED SSD1306}
-\newcommand{\CandidateName}{\textit{Sergio Cordero Calvimontes}}
+\newcommand{\CandidateWebsite}{https://argus-kepheus.github.io/sergio-cordero-calvimontes/\#home}
+\newcommand{\CandidateName}{\href{\CandidateWebsite}{Sergio Cordero Calvimontes}}
 \newcommand{\WokwiURL}{https://wokwi.com/projects/471528241540407297}
 \newcommand{\GitHubURL}{https://github.com/Argus-Kepheus/cess-uff}
 
@@ -132,7 +134,7 @@
 
 \section{Introdução}
 
-Este projeto integra uma avaliação prática do processo seletivo \textbf{CESS-UFF / SGIMP}. A proposta reúne conteúdos de instrumentação, eletrônica e lógica de programação por meio da simulação de um sistema embarcado baseado em ESP32, dois diodos emissores de luz (LEDs), um botão pulsador e um mostrador OLED controlado pelo circuito integrado SSD1306.
+Este projeto integra uma avaliação prática do processo seletivo \textbf{CESS-UFF / SGIMP}. A proposta reúne conteúdos de instrumentação, eletrônica e lógica de programação por meio da simulação de um sistema embarcado baseado em ESP32, dois diodos emissores de luz (LEDs), um botão pulsador -- um tipo de interruptor que atua apenas enquanto está sendo acionado -- e um mostrador (\textit{display}) OLED controlado pelo circuito integrado SSD1306.
 
 A simulação executável está publicada no Wokwi em\linebreak[2]
 \url{\WokwiURL}. O código-fonte, o diagrama do circuito, a documentação e o histórico de versões estão disponíveis no repositório GitHub em\linebreak[2]
@@ -142,62 +144,77 @@ O Wokwi foi adotado como plataforma principal por oferecer suporte nativo ao ESP
 
 \section{Requisitos e definições do projeto}
 
-\subsection{Requisitos funcionais}
+\subsection{Requisitos funcionais e estados do sistema}
 
-O sistema deve satisfazer os seguintes requisitos:
+O sistema deve satisfazer os requisitos funcionais por meio de dois comportamentos independentes, executados concorrentemente sob escalonamento cooperativo: um controla exclusivamente o LED vermelho e o outro relaciona o estado do botão às saídas do LED verde e do mostrador OLED.
 
-\begin{enumerate}
-  \item O LED vermelho, conectado ao GPIO~2, deve alternar entre ligado e desligado a cada 500~ms, continuamente e sem bloquear as demais funções.
-  \item O LED verde, conectado ao GPIO~4, deve permanecer apagado com o botão solto e acender enquanto o botão estiver pressionado.
-  \item O botão pulsador normalmente aberto deve ser conectado ao GPIO~17 e interpretado como nível lógico alto (\textit{HIGH}) quando pressionado.
-  \item O mostrador OLED SSD1306 deve utilizar comunicação I\textsuperscript{2}C, com GPIO~25 como SCL e GPIO~16 como SDA.
-  \item Com o botão solto, o OLED deve exibir exatamente a mensagem \texttt{Boa sorte!!}.
-  \item Com o botão pressionado, o OLED deve exibir exatamente a mensagem \texttt{Consegui!}.
-  \item A mensagem e o LED verde devem ser atualizados quando o estado estável do botão mudar.
-\end{enumerate}
+\begin{description}
+  \item[Sinalização periódica do LED vermelho:] Alterna continuamente, independentemente do botão, do LED verde e do OLED, entre os estados \textbf{desligado} (GPIO~2 em nível baixo por aproximadamente 500~[ms]) e \textbf{ligado} (GPIO~2 em nível alto por aproximadamente 500~[ms]), compondo um ciclo completo de aproximadamente 1~[s].
+
+  \item[Interface com o usuário:] Lê o botão conectado ao GPIO~17 e atualiza o LED verde e o OLED: com o \textbf{botão solto}, GPIO~17 em nível baixo, LED verde (GPIO~4) desligado e OLED exibindo \enquote{\texttt{Boa sorte!}}; com o \textbf{botão pressionado}, GPIO~17 em nível alto, LED verde ligado e OLED exibindo \enquote{\texttt{Consegui}}. O display é atualizado apenas na transição estável, evitando atualizações redundantes.
+\end{description}
 
 \subsection{Definições de hardware}
 
-A placa selecionada foi a \textbf{Espressif ESP32-DevKitC V4}, representada no Wokwi pelo componente \texttt{board-esp32-devkit-c-v4}. A especificação original exige apenas ``MicroPython para ESP32''; portanto, a escolha da placa não decorre de uma necessidade exclusiva de desempenho. Ela foi assumida por ser uma placa oficial da Espressif, documentada, identificada de forma inequívoca no simulador e capaz de disponibilizar todos os GPIOs requeridos.
+A placa selecionada foi a \textbf{Espressif ESP32-DevKitC V4}, representada no Wokwi pelo componente \texttt{board-esp32-devkit-c-v4}. A especificação original exige apenas \enquote{MicroPython para ESP32}; portanto, a escolha da placa não decorre de uma necessidade exclusiva de desempenho. Ela foi assumida por ser uma placa oficial da Espressif, documentada, identificada de forma inequívoca no simulador e capaz de disponibilizar todos os GPIOs requeridos. A Tabela \ref{tab:pinagem} apresenta a pinagem específica adotada para este projeto.
 
 Para eventual montagem física, recomenda-se uma ESP32-DevKitC V4 equipada com módulo ESP32-WROOM, preferencialmente ESP32-WROOM-32E. Versões com módulo WROVER devem ser evitadas sem revisão do projeto, pois GPIO~16 e GPIO~17 podem ser reservados para a memória PSRAM.
+
+Além da placa selecionada, outras placas de desenvolvimento poderiam ser utilizadas sem problemas de compatibilidade de pinos, desde que baseadas no chip ESP32 (arquitetura Xtensa LX6) com módulo WROOM -- e não WROVER, S2, S3, C3 ou C6, cujos mapeamentos de GPIO, reservas de memória e conjunto de periféricos diferem do exigido por este projeto. Entre as alternativas compatíveis estão:
+
+\begin{itemize}
+  \item Espressif ESP32-DevKitC V2, a revisão anterior da placa adotada, com o mesmo módulo ESP32-WROOM-32 e cabeçalho (\textit{header}) de 38 pinos;
+  \item placas genéricas \enquote{NodeMCU-32S} (ESP-WROOM-32), amplamente disponíveis de diversos fabricantes, com layout de 38 pinos equivalente;
+  \item \enquote{DOIT ESP32 DevKit V1}, com módulo ESP32-WROOM-32 em cabeçalho de 30 pinos, desde que os GPIOs~2, 4, 16, 17 e 25 estejam expostos;
+  \item Clones com módulo WROOM-32 de fabricantes como AZ-Delivery ou HiLetgo, que replicam o mesmo mapeamento de GPIOs do módulo original.
+\end{itemize}
+
+Em todos os casos, é necessário confirmar que os GPIOs~16 e 17 não estão reservados para PSRAM ou outra função interna do módulo específico antes de reutilizar o mapeamento de pinos deste projeto.
 
 \begin{table}[htbp]
   \centering
   \caption{Pinagem específica do projeto.}
   \label{tab:pinagem}
-  \begin{tabularx}{\textwidth}{@{}Y C{2.1cm} Y Y@{}}
+  \begin{tabularx}{\textwidth}{@{}Y C{1.6cm} C{2.2cm} Y Y@{}}
     \toprule
-    Função & GPIO & Identificador no Wokwi & Identificador no código \\
+    Função & GPIO & Terminal físico$^{1}$ & Identificador no Wokwi & Identificador no código \\
     \midrule
-    LED vermelho & 2 & \texttt{red-led} & \texttt{red\_led} \\
-    LED verde & 4 & \texttt{green-led} & \texttt{green\_led} \\
-    Botão pulsador & 17 & \texttt{push-button} & \texttt{push\_button} \\
-    OLED, dados I\textsuperscript{2}C & 16 & \texttt{oled-display:SDA} & \texttt{OLED\_SDA\_PIN} \\
-    OLED, relógio I\textsuperscript{2}C & 25 & \texttt{oled-display:SCL} & \texttt{OLED\_SCL\_PIN} \\
+    LED vermelho & 2 & J3-15 & \texttt{red-led} & \texttt{red\_led} \\
+    LED verde & 4 & J3-13 & \texttt{green-led} & \texttt{green\_led} \\
+    Botão pulsador & 17 & J3-11 & \texttt{push-button} & \texttt{push\_button} \\
+    OLED, dados I\textsuperscript{2}C & 16 & J3-12 & \texttt{oled-display:SDA} & \texttt{OLED\_SDA\_PIN} \\
+    OLED, relógio I\textsuperscript{2}C & 25 & J2-9 & \texttt{oled-display:SCL} & \texttt{OLED\_SCL\_PIN} \\
     \bottomrule
   \end{tabularx}
+
+  \vspace{0.3em}
+  \raggedright\footnotesize
+  $^{1}$Identificação do conector (J2 ou J3) e da posição do terminal no cabeçalho físico de 38 pinos da ESP32-DevKitC V4, conforme \texttt{docs/hardware-reference.md}.
 \end{table}
 
-A numeração utilizada corresponde aos números dos GPIOs do microcontrolador e não à posição sequencial dos terminais físicos da placa. Os dois LEDs possuem resistores limitadores de 220~\(\Omega\), e todos os componentes compartilham a mesma referência de terra.
+A numeração utilizada corresponde aos números dos GPIOs do microcontrolador e não à posição sequencial dos terminais físicos da placa; a coluna ``Terminal físico'' indica exatamente essa posição sequencial, para referência ao montar o circuito fisicamente. Os dois LEDs possuem resistores limitadores de 220~[$\Omega$], e todos os componentes compartilham a mesma referência de terra.
 
 \subsection{Entrada do botão e antirrepique}
 
-O GPIO~17 é configurado como entrada com resistor interno de redução (\textit{pull-down}). Dessa forma, o terminal permanece em nível baixo com o botão aberto e passa ao nível alto quando o contato conecta o GPIO à alimentação de 3,3~V.
+O GPIO~17 é configurado como entrada com resistor interno de redução (\textit{pull-down}). Dessa forma, o terminal permanece em nível baixo com o botão aberto e passa ao nível alto quando o contato conecta o GPIO à alimentação de 3,3~[V].
 
-Não foi acrescentado filtro RC externo. O antirrepique é realizado por programa, sem bloqueio: o nível é amostrado periodicamente e uma alteração somente é aceita quando permanece estável por aproximadamente 30~ms. Essa estratégia é suficiente para a aplicação e evita oscilações do LED verde e atualizações repetidas do OLED.
+Essa configuração dispensa a implementação física de um resistor de \textit{pull-down} externo: o próprio microcontrolador disponibiliza esse resistor internamente, ativado por software (\texttt{Pin.PULL\_DOWN}), o que simplifica o circuito, reduz o número de componentes e elimina uma fonte de erro de montagem.
+
+Não foi acrescentado filtro RC externo. O antirrepique (\textit{bouncing}) é realizado por programa, sem bloqueio: o nível é amostrado periodicamente e uma alteração somente é aceita quando permanece estável por aproximadamente 30~[ms]. Essa estratégia é suficiente para a aplicação e evita oscilações do LED verde e atualizações repetidas do OLED.
+
+Essas duas medidas fazem sentido sobretudo para uma implementação física: um botão pulsador mecânico real produz múltiplas transições elétricas espúrias durante o acionamento, e é esse ruído que o antirrepique elimina. O simulador Wokwi, por outro lado, modela o botão como um interruptor ideal, sem esse ruído de contato. Na simulação, portanto, o antirrepique não é estritamente necessário e é mantido apenas como boa prática, de modo que o mesmo código já esteja correto caso o projeto seja migrado para um botão físico sem qualquer alteração de lógica.
 
 \subsection{Interface do mostrador}
 
-A utilização de GPIO~25 para SCL e GPIO~16 para SDA é uma \textbf{predefinição do projeto}. Não se trata da escolha dos pinos mais usuais do ESP32, razão pela qual o mapeamento é declarado explicitamente no código, no diagrama e na documentação.
+O enunciado original exige apenas que o mostrador OLED exiba as mensagens conforme o estado do botão, sem especificar interface de comunicação ou pinos. A utilização da comunicação I\textsuperscript{2}C, com GPIO~25 como SCL e GPIO~16 como SDA, foi definida antes da etapa de desenvolvimento, e não decorre de uma exigência explícita do enunciado. Uma vez definida, essa escolha foi tratada como fixa e declarada explicitamente no código, no diagrama e na documentação, para evitar ambiguidades ao longo do desenvolvimento.
 
-A interface I\textsuperscript{2}C utiliza apenas dois sinais de comunicação e é adequada às mensagens curtas e estáticas desta aplicação. Uma implementação SPI poderia alcançar maior taxa de transferência, porém exigiria mais sinais de controle e não proporcionaria vantagem relevante para as atualizações pouco frequentes deste projeto. O endereço adotado para o SSD1306 é \texttt{0x3C}, com resolução de 128 por 64 pixels.
+A interface I\textsuperscript{2}C utiliza apenas dois sinais de comunicação e é adequada às mensagens curtas e estáticas desta aplicação. Uma implementação SPI poderia alcançar maior taxa de transferência, porém exigiria mais sinais de controle e não proporcionaria vantagem relevante para as atualizações pouco frequentes deste projeto. O endereço adotado para o SSD1306 é \texttt{0x3C}, com resolução de 128 por 64~[pixels].
 
 \section{Desenvolvimento do programa \texttt{main.py}}
 
 \subsection{Estrutura geral}
 
-O arquivo \texttt{main.py} concentra a inicialização do hardware e a coordenação das tarefas. Os nomes dos componentes e das variáveis seguem convenções distintas: identificadores do Wokwi usam hífen, enquanto identificadores Python usam sublinhado. As constantes de pino permanecem em letras maiúsculas.
+O arquivo \texttt{main.py} concentra a inicialização do hardware e a coordenação das tarefas.
 
 Uma organização representativa da aplicação é mostrada a seguir:
 
@@ -225,29 +242,27 @@ async def main():
 asyncio.run(main())
 \end{lstlisting}
 
-O trecho é uma síntese da arquitetura; o código completo e executável permanece no repositório.
+Este trecho é uma síntese da arquitetura; o código completo e executável está disponível no repositório.
 
 \subsection{Assincronismo cooperativo}
 
-A biblioteca \texttt{asyncio} do MicroPython foi escolhida como arquitetura exclusiva do projeto. Em vez de um superlaço que verifica manualmente diversos temporizadores, cada função independente pode ser organizada como uma corrotina. A instrução \texttt{await asyncio.sleep\_ms(...)} suspende apenas a tarefa atual e devolve o controle ao escalonador.
+A biblioteca \texttt{asyncio} do MicroPython foi escolhida como arquitetura exclusiva do projeto. Em vez de um superlaço (\textit{superloop}) que verifica manualmente diversos temporizadores, cada função independente pode ser organizada como uma corrotina (\textit{coroutine}). A instrução \texttt{await asyncio.sleep\_ms(...)} suspende apenas a tarefa atual e devolve o controle ao escalonador (\textit{scheduler}).
 
 Essa decisão foi tomada pelos seguintes motivos:
 
 \begin{itemize}
-  \item separação clara entre o piscar do LED vermelho, a leitura do botão e a atualização das saídas;
-  \item menor acoplamento entre funcionalidades;
-  \item facilidade de manutenção e expansão com novos sensores ou atuadores;
-  \item prevenção de congelamentos causados por \texttt{time.sleep()} no fluxo principal;
-  \item melhor tolerância às pequenas latências introduzidas pela transmissão do quadro de imagem do OLED pelo barramento I\textsuperscript{2}C.
+  \item Separação clara entre o piscar do LED vermelho, a leitura do botão e a atualização das saídas;
+  \item Menor acoplamento entre funcionalidades;
+  \item Facilidade de manutenção e expansão com novos sensores ou atuadores;
+  \item Prevenção de congelamentos causados por \texttt{time.sleep()} no fluxo principal;
+  \item Melhor tolerância às pequenas latências introduzidas pela transmissão do quadro de imagem do OLED pelo barramento I\textsuperscript{2}C.
 \end{itemize}
 
 O assincronismo adotado é cooperativo. Portanto, as tarefas devem alcançar pontos de espera com frequência e evitar rotinas longas ou bloqueantes.
 
 \subsection{Controle do LED vermelho}
 
-O LED vermelho opera em tarefa própria e alterna seu nível lógico a cada 500~ms. O ciclo completo, composto por 500~ms ligado e 500~ms desligado, dura aproximadamente um segundo. Essa tarefa não depende do botão, do LED verde ou do OLED.
-
-O uso de \texttt{time.sleep\_ms(500)} foi aceito apenas em um programa temporário de diagnóstico isolado. No programa final, a espera é assíncrona para que a leitura do botão continue ocorrendo durante o intervalo entre as alternâncias.
+O LED vermelho opera em tarefa própria e alterna seu nível lógico a cada 500~[ms]. O ciclo completo, composto por 500~[ms] ligado e 500~[ms] desligado, dura aproximadamente um segundo. Essa tarefa não depende do botão, do LED verde ou do OLED.
 
 \subsection{Controle do botão, LED verde e mensagens}
 
@@ -261,8 +276,8 @@ A tarefa de entrada realiza amostragem periódica, antirrepique e detecção de 
     \toprule
     Estado estável do botão & LED verde & Mensagem do OLED \\
     \midrule
-    Solto (LOW) & Apagado & \texttt{Boa sorte!!} \\
-    Pressionado (HIGH) & Aceso & \texttt{Consegui!} \\
+    Solto (LOW) & Apagado & \texttt{Boa sorte!} \\
+    Pressionado (HIGH) & Aceso & \texttt{Consegui} \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -274,29 +289,31 @@ A sincronização do LED verde e do OLED a partir do mesmo estado estável evita
 O mostrador não é redesenhado continuamente. O quadro de imagem é transmitido na inicialização e somente quando o estado confirmado do botão muda. Essa atualização orientada por eventos reduz:
 
 \begin{itemize}
-  \item tráfego desnecessário no barramento I\textsuperscript{2}C;
-  \item tempo de processamento;
-  \item repetição de escritas no controlador SSD1306;
-  \item cintilação visual do mostrador;
-  \item interferência temporal nas demais tarefas.
+  \item Tráfego desnecessário no barramento I\textsuperscript{2}C;
+  \item Tempo de processamento;
+  \item Repetição de escritas no controlador SSD1306;
+  \item Cintilação (\textit{flickering}) visual do mostrador;
+  \item Interferência temporal nas demais tarefas.
 \end{itemize}
 
-A escolha é especialmente apropriada porque as mensagens permanecem estáticas entre uma transição e outra.
+A escolha é especialmente apropriada porque as mensagens permanecem estáticas entre uma transição e outra. Caso as mensagens não fossem estáticas -- por exemplo, um contador ou uma leitura de sensor atualizada continuamente --, a estratégia adequada seria limitar a taxa de atualização do quadro a um intervalo fixo (dezenas ou centenas de milissegundos) em vez de redesenhar a cada iteração do laço, e, quando possível, retransmitir apenas a região alterada do \textit{buffer} em vez do quadro completo, mantendo o tráfego I\textsuperscript{2}C e o tempo de processamento dentro de limites aceitáveis.
 
 \section{Estratégia de verificação e testes isolados}
 
 O desenvolvimento foi acompanhado por testes progressivos. A separação dos subsistemas permitiu distinguir erros de ligação, inicialização e lógica de aplicação.
 
 \begin{enumerate}
-  \item \textbf{Teste isolado do LED vermelho:} utilizou um laço bloqueante mínimo somente para diagnóstico. O GPIO~2 foi alternado a cada 500~ms e o estado foi registrado no monitor serial. O objetivo foi confirmar placa, pino, resistor, polaridade e retorno ao terra sem interferência das demais funções.
+  \item \textbf{Teste isolado do LED vermelho:} Utilizou um laço bloqueante mínimo somente para diagnóstico. O GPIO~2 foi alternado a cada 500~[ms] e o estado foi registrado no monitor serial. O objetivo foi confirmar placa, pino, resistor, polaridade e retorno ao terra sem interferência das demais funções.
 
-  \item \textbf{Teste básico do OLED:} inicializou o barramento I\textsuperscript{2}C em GPIO~25 e GPIO~16, realizou \texttt{i2c.scan()} e confirmou a detecção do endereço decimal 60, equivalente a \texttt{0x3C}. Em seguida, apresentou uma mensagem simples.
+  \item \textbf{Teste do LED vermelho com \texttt{asyncio}:} Repetiu o teste anterior, agora encapsulado em uma corrotina agendada com \texttt{asyncio.create\_task()} dentro de \texttt{asyncio.run()}, isolando especificamente o suporte a \texttt{asyncio} do firmware como variável, separado da fiação já confirmada.
 
-  \item \textbf{Diagnóstico gráfico do SSD1306:} exercitou todos os pixels ligados e desligados, padrões quadriculados complementares, varreduras horizontais e verticais, grade, pixels individuais, linhas, retângulos, áreas preenchidas, texto, inversão, contraste, desligamento, religamento e deslocamento do quadro.
+  \item \textbf{Teste isolado do botão e do LED verde:} Amostrou o GPIO~17 periodicamente e refletiu o estado lido no GPIO~4, sem qualquer dependência do LED vermelho ou do OLED. O objetivo foi confirmar a fiação do botão, o resistor interno de redução e o comportamento ativo em nível alto isoladamente.
 
-  \item \textbf{Reinício do diagnóstico pelo botão:} o teste completo do OLED foi adaptado para reiniciar com um pulso no GPIO~17, incluindo antirrepique e detecção de borda de subida. Essa etapa verificou simultaneamente entrada digital, resistor interno de redução e execução assíncrona.
+  \item \textbf{Teste básico do OLED:} Inicializou o barramento I\textsuperscript{2}C em GPIO~25 e GPIO~16, realizou \texttt{i2c.scan()} e confirmou a detecção do endereço decimal 60, equivalente a \texttt{0x3C}. Em seguida, apresentou uma mensagem simples.
 
-  \item \textbf{Integração final:} após a validação individual, foram reunidos o piscar independente do LED vermelho, o LED verde comandado pelo botão e a atualização dinâmica das mensagens do OLED.
+  \item \textbf{Diagnóstico gráfico do SSD1306:} Exercitou todos os pixels ligados e desligados, padrões quadriculados complementares, varreduras horizontais e verticais, grade, pixels individuais, linhas, retângulos, áreas preenchidas, texto, inversão, contraste, desligamento, religamento e deslocamento do quadro.
+
+  \item \textbf{Integração final:} Após a validação individual, foram reunidos o piscar independente do LED vermelho, o LED verde comandado pelo botão e a atualização dinâmica das mensagens do OLED.
 \end{enumerate}
 
 A sequência de testes reduziu o espaço de busca de falhas: se um subsistema simples não funcionasse, o problema poderia ser tratado antes da integração com o restante da aplicação.
@@ -316,13 +333,11 @@ A Figura~\ref{fig:circuito} apresenta o estado atual do circuito no Wokwi. As co
   \label{fig:circuito}
 \end{figure}
 
-A disposição gráfica dos fios pode ser ajustada sem modificar o funcionamento, desde que as extremidades elétricas permaneçam conectadas aos mesmos terminais. O arquivo \texttt{diagram.json} registra tanto as conexões quanto as coordenadas visuais e as instruções de roteamento dos condutores.
-
 \section{Conclusão}
 
 O projeto atende aos requisitos propostos por meio de uma implementação modular e reproduzível. A escolha da ESP32-DevKitC V4 reduz ambiguidades de pinagem, enquanto o uso explícito dos GPIOs preserva a correspondência entre código, documentação e circuito. A comunicação I\textsuperscript{2}C satisfaz adequadamente a necessidade de exibição das mensagens e mantém baixo o número de conexões.
 
-A arquitetura assíncrona permite que o LED vermelho continue piscando enquanto o botão é monitorado e o mostrador é atualizado. O antirrepique por programa elimina a necessidade de filtro externo nesta aplicação, e a atualização do OLED apenas em mudanças de estado reduz processamento e cintilação. Por fim, os testes isolados e progressivos forneceram evidências de funcionamento de cada subsistema antes da integração.
+A arquitetura assíncrona permite concorrência de processos. O antirrepique elimina a necessidade de filtro externo nesta aplicação, e a atualização do OLED apenas em mudanças de estado reduz processamento e cintilação. Por fim, os testes isolados e progressivos forneceram evidências de funcionamento de cada subsistema antes da integração.
 
 A entrega é complementada por dois meios de acesso: a simulação pública no Wokwi e o repositório versionado no GitHub. Em conjunto, eles possibilitam executar, inspecionar, reproduzir e evoluir o projeto.
 

@@ -44,8 +44,8 @@ Os requisitos completos e as decisões de projeto estão em
 
 | Estado do botão | LED verde | Mensagem no OLED |
 |---|---|---|
-| Solto | Apagado | `Boa sorte!!` |
-| Pressionado | Aceso | `Consegui!` |
+| Solto | Apagado | `Boa sorte!` |
+| Pressionado | Aceso | `Consegui` |
 
 O LED vermelho pisca continuamente a cada 500 ms, de forma independente
 do botão, do LED verde e do OLED.

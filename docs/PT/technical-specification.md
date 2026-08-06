@@ -137,8 +137,8 @@ Interpretação temporal:
 - endereço: `0x3C`;
 - GPIO25: SCL;
 - GPIO16: SDA;
-- botão solto: exibir exatamente `Boa sorte!!`;
-- botão pressionado: exibir exatamente `Consegui!`;
+- botão solto: exibir exatamente `Boa sorte!`;
+- botão pressionado: exibir exatamente `Consegui`;
 - atualizar a memória de quadro somente quando o estado estável do botão
   mudar.
 
@@ -146,8 +146,8 @@ Interpretação temporal:
 
 | Estado estável do botão | GPIO17 | LED verde | OLED |
 |---|---:|---|---|
-| Solto | LOW | Apagado | `Boa sorte!!` |
-| Pressionado | HIGH | Aceso | `Consegui!` |
+| Solto | LOW | Apagado | `Boa sorte!` |
+| Pressionado | HIGH | Aceso | `Consegui` |
 
 O LED vermelho permanece piscando nos dois estados.
 
@@ -540,4 +540,4 @@ Em uma montagem física devem ser considerados:
 | Versão do firmware no `diagram.json` | Não fixar `attrs.env`; usar a versão padrão/atual do Wokwi |
 | Licença | CC0 1.0 Universal |
 | Idioma do código | Inglês |
-| Mensagens do OLED | Português, exatamente `Boa sorte!!` e `Consegui!` |
+| Mensagens do OLED | Português, exatamente `Boa sorte!` e `Consegui` |

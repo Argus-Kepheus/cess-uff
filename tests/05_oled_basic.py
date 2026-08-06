@@ -11,7 +11,7 @@ part of the evidence that confirmed hardware I2C works and made that
 workaround unnecessary).
 
 Expected: the serial monitor lists 0x3C among the detected I2C devices,
-and the OLED shows "Boa sorte!!".
+and the OLED shows "Boa sorte!".
 """
 
 from machine import I2C, Pin
@@ -43,7 +43,7 @@ oled_display = ssd1306.SSD1306_I2C(
 )
 
 oled_display.fill(0)
-oled_display.text("Boa sorte!!", 16, 28)
+oled_display.text("Boa sorte!", 16, 28)
 oled_display.show()
 
 print("OLED test completed")

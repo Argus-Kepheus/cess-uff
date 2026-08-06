@@ -1,17 +1,22 @@
 <#
 .SYNOPSIS
-    Compiles report/relatorio.tex into relatorio.pdf and cleans up LaTeX
-    temporary/auxiliary files.
+    Compiles a .tex document in this folder (relatorio.tex by default) into
+    a PDF and cleans up LaTeX temporary/auxiliary files.
 
 .DESCRIPTION
     Prefers `latexmk -lualatex` (handles however many passes are needed for
     the table of contents, references and page count to settle, and knows
     which files are its own temporary output). Falls back to two manual
-    `lualatex` passes if `latexmk` is not installed.
+    `lualatex` passes if `latexmk` is not installed, or if it fails at
+    runtime (e.g. missing perl).
 
     Temporary files (.aux, .log, .out, .toc, .fls, .fdb_latexmk,
     .synctex.gz, .lof, .lot, .bbl, .blg, .run.xml, .bcf) are removed after a
-    successful build by default. relatorio.pdf is never deleted.
+    successful build by default. The resulting PDF is never deleted.
+
+.PARAMETER Document
+    Base name (without .tex) of the document to build, e.g. 'relatorio' or
+    'apresentacao_mobile'. Defaults to 'relatorio'.
 
 .PARAMETER Clean
     Only remove temporary files; do not compile.
@@ -21,24 +26,33 @@
     when debugging a LaTeX error from the .log file).
 
 .PARAMETER Open
-    Open the resulting relatorio.pdf after a successful build.
+    Open the resulting PDF after a successful build.
 
 .EXAMPLE
     .\build.ps1
-    Compile the report and clean up temporary files.
+    Compile relatorio.tex and clean up temporary files.
+
+.EXAMPLE
+    .\build.ps1 -Document apresentacao_mobile
+    Compile apresentacao_mobile.tex and clean up temporary files.
 
 .EXAMPLE
     .\build.ps1 -Clean
-    Remove leftover temporary files without compiling anything.
+    Remove relatorio's leftover temporary files without compiling anything.
+
+.EXAMPLE
+    .\build.ps1 -Document apresentacao_mobile -Clean
+    Remove apresentacao_mobile's leftover temporary files without compiling.
 
 .EXAMPLE
     .\build.ps1 -KeepTemp -Open
-    Compile, keep the .log/.aux files around for troubleshooting, and open
-    the PDF.
+    Compile relatorio, keep the .log/.aux files around for troubleshooting,
+    and open the PDF.
 #>
 
 [CmdletBinding()]
 param(
+    [string]$Document = 'relatorio',
     [switch]$Clean,
     [switch]$KeepTemp,
     [switch]$Open
@@ -51,9 +65,9 @@ $ErrorActionPreference = 'Stop'
 $ReportDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ReportDir
 
-$TexFile = 'relatorio.tex'
-$PdfFile = 'relatorio.pdf'
-$BaseName = [System.IO.Path]::GetFileNameWithoutExtension($TexFile)
+$BaseName = $Document
+$TexFile = "$BaseName.tex"
+$PdfFile = "$BaseName.pdf"
 
 # Extensions latexmk/lualatex are expected to produce as byproducts of a
 # build. Never includes .tex or .pdf.
@@ -110,7 +124,7 @@ $buildSucceeded = $false
 
 try {
     if ($latexmk) {
-        Write-Host 'Building with latexmk -lualatex ...'
+        Write-Host "Building $TexFile with latexmk -lualatex ..."
         & latexmk -lualatex -interaction=nonstopmode -halt-on-error $TexFile
         if ($LASTEXITCODE -ne 0) {
             if ($lualatex) {
@@ -123,7 +137,7 @@ try {
         }
     }
     else {
-        Write-Host 'latexmk not found; using two manual lualatex passes ...'
+        Write-Host "latexmk not found; building $TexFile with two manual lualatex passes ..."
         Invoke-ManualLualatexPasses
     }
 

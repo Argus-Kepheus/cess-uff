@@ -42,8 +42,8 @@ Full requirements and design rationale are in
 
 | Push-button state | Green LED | OLED message |
 |---|---|---|
-| Released | OFF | `Boa sorte!!` |
-| Pressed | ON | `Consegui!` |
+| Released | OFF | `Boa sorte!` |
+| Pressed | ON | `Consegui` |
 
 The red LED blinks continuously every 500 ms, independently of the
 push-button, green LED, and OLED.

@@ -36,8 +36,8 @@ OLED_WIDTH = 128
 OLED_HEIGHT = 64
 OLED_I2C_ADDRESS = 0x3C
 OLED_I2C_FREQUENCY_HZ = 400_000
-MSG_RELEASED = "Boa sorte!!"  # shown while the button is released
-MSG_PRESSED = "Consegui!"     # shown while the button is pressed
+MSG_RELEASED = "Boa sorte!"  # shown while the button is released
+MSG_PRESSED = "Consegui"     # shown while the button is pressed
 
 # --- Peripheral setup ----------------------------------------------------
 red_led = Pin(RED_LED_PIN, Pin.OUT, value=0)

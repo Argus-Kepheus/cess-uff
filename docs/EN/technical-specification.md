@@ -102,8 +102,8 @@ study (see §6.3).
 
 ### FR-05 — OLED content
 
-- Stable button released → display exactly `Boa sorte!!`
-- Stable button pressed → display exactly `Consegui!`
+- Stable button released → display exactly `Boa sorte!`
+- Stable button pressed → display exactly `Consegui`
 - Content updates dynamically on every state change.
 - The initial display must match the physical button state at startup.
 
@@ -126,7 +126,7 @@ study (see §6.3).
 | Repository folder | kebab-case | `cess-uff` |
 
 All source code, comments and documentation are written in English. The two
-OLED display strings (`Boa sorte!!` / `Consegui!`) are a deliberate
+OLED display strings (`Boa sorte!` / `Consegui`) are a deliberate
 exception, kept in Portuguese per the assignment's explicit requirement.
 
 ## 6. Electrical design
@@ -243,8 +243,8 @@ from repeated clear/draw cycles.
 
 | Stable state | GPIO 17 | Green LED | OLED message |
 |---|---:|---|---|
-| Released | LOW | OFF | `Boa sorte!!` |
-| Pressed | HIGH | ON | `Consegui!` |
+| Released | LOW | OFF | `Boa sorte!` |
+| Pressed | HIGH | ON | `Consegui` |
 
 The red LED task is orthogonal to this state model and keeps toggling every
 500 ms in both states.
@@ -273,20 +273,20 @@ submitted simulation.
 
 **Precondition:** button not pressed when the simulation starts.
 **Expected:** red LED begins toggling; green LED stays off; OLED shows
-`Boa sorte!!`.
+`Boa sorte!`.
 
 ### TC-02 — Press button
 
 **Action:** press and hold the push-button.
 **Expected after debounce:** green LED turns on; OLED changes once to
-`Consegui!`; red LED keeps toggling without freezing or a visible timing
+`Consegui`; red LED keeps toggling without freezing or a visible timing
 glitch.
 
 ### TC-03 — Release button
 
 **Action:** release the push-button.
 **Expected after debounce:** green LED turns off; OLED changes once back to
-`Boa sorte!!`; red LED keeps toggling.
+`Boa sorte!`; red LED keeps toggling.
 
 ### TC-04 — Rapid repeated presses
 

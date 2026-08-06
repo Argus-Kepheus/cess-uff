@@ -1,0 +1,298 @@
+% !TeX program = lualatex
+% !TeX encoding = UTF-8
+% !TeX spellcheck = pt_BR
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+% Mesma tipografia do relatorio.tex (Latin Modern Roman para o corpo do texto,
+% Latin Modern Sans e Latin Modern Mono para títulos e código).
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+
+\usepackage[brazil]{babel}
+\usepackage{geometry}
+
+% Formato vertical estilo tela de smartphone (proporção 9:16, como a maioria
+% dos celulares em retrato), para que cada página ocupe a tela inteira ao
+% ser aberta e ampliada em um leitor de PDF no celular.
+\geometry{
+  paperwidth=90mm,
+  paperheight=160mm,
+  top=9mm,
+  bottom=11mm,
+  left=6mm,
+  right=6mm
+}
+
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{xurl}
+\usepackage{hyperref}
+
+% Mesma paleta de cores do relatorio.tex (linkblue, commentgreen, stringred,
+% codegray, rulegray), para que os dois documentos pareçam parte do mesmo
+% conjunto em vez de usarem identidades visuais distintas. "primaryColor" e
+% "accentColor" são apelidos semânticos para o mesmo azul do relatório, e
+% "greenAccent"/"redAccent" reaproveitam as cores já usadas lá para
+% comentários/strings de código, aqui usadas para o LED verde/vermelho.
+\definecolor{linkblue}{HTML}{1D4ED8}
+\definecolor{codegray}{HTML}{F3F4F6}
+\definecolor{rulegray}{HTML}{D1D5DB}
+\definecolor{commentgreen}{HTML}{166534}
+\definecolor{stringred}{HTML}{B91C1C}
+
+\colorlet{primaryColor}{linkblue!85!black}
+\colorlet{accentColor}{linkblue}
+\colorlet{greenAccent}{commentgreen}
+\colorlet{redAccent}{stringred}
+\colorlet{cardBg}{codegray}
+\colorlet{cardBorder}{rulegray}
+\colorlet{mutedText}{black!45}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accentColor,
+  urlcolor=accentColor
+}
+
+% Estilo de cabeçalho e rodapé
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\lfoot{\tiny \color{mutedText} CESS-UFF / SGIMP}
+\rfoot{\tiny \color{mutedText} Slide \thepage\ de \pageref{LastPage}}
+
+\setlist[itemize]{leftmargin=1.2em,itemsep=0.3em,topsep=0.3em}
+\setlist[enumerate]{leftmargin=1.4em,itemsep=0.3em,topsep=0.3em}
+\setlength{\parindent}{0pt}
+
+\newcommand{\WokwiURL}{https://wokwi.com/projects/471528241540407297}
+\newcommand{\GitHubURL}{https://github.com/Argus-Kepheus/cess-uff}
+\newcommand{\CandidateWebsite}{https://argus-kepheus.github.io/sergio-cordero-calvimontes/\#home}
+\newcommand{\CandidateName}{\href{\CandidateWebsite}{Sergio Cordero Calvimontes}}
+\newcommand{\okmark}{\textcolor{greenAccent}{\checkmark}}
+
+% Título de slide
+\newcommand{\slideheader}[1]{%
+  {\Large\bfseries\color{primaryColor} #1}\par
+  \vspace*{2mm}
+  {\color{accentColor}\hrule height 1.2pt}
+  \vspace*{4mm}
+}
+
+% Largura de card calculada a partir da largura útil da página corrente
+% (\linewidth), em vez de um valor fixo em mm -- assim o card sempre ocupa a
+% tela inteira disponível, mesmo que a geometria da página mude.
+\newcommand{\cardtextwidth}{\dimexpr\linewidth-12pt\relax}
+
+% Card padrão
+\newcommand{\card}[2]{%
+  \begin{tikzpicture}
+    \node[fill=cardBg, draw=cardBorder, rounded corners=6pt, inner sep=6pt, text width=\cardtextwidth] {
+      \small\textbf{\color{primaryColor} #1}\\[3pt]
+      \footnotesize\color{black} #2
+    };
+  \end{tikzpicture}\par\vspace{3mm}
+}
+
+% Card de destaque, com cor de ênfase configurável
+\newcommand{\alertcard}[3]{%
+  \begin{tikzpicture}
+    \node[fill=#1!8, draw=#1!40, rounded corners=6pt, inner sep=6pt, text width=\cardtextwidth] {
+      \small\textbf{\color{#1} #2}\\[3pt]
+      \footnotesize\color{black} #3
+    };
+  \end{tikzpicture}\par\vspace{3mm}
+}
+
+\begin{document}
+
+% ------------------------------------------------------------------------------
+% SLIDE 1: Capa
+% ------------------------------------------------------------------------------
+\begin{center}
+  \vspace*{4mm}
+  \begin{tikzpicture}
+    \node[fill=accentColor!15, rounded corners=10pt, inner sep=5pt] {
+      \color{accentColor}\bfseries\footnotesize CESS-UFF / SGIMP
+    };
+  \end{tikzpicture}
+
+  \vspace{6mm}
+
+  {\Large \textbf{\color{primaryColor} Sistema de Sinalização Embarcado}}\par
+  \vspace{3mm}
+  {\small \color{mutedText} ESP32, MicroPython, LEDs, Botão e OLED SSD1306}\par
+
+  \vspace{8mm}
+
+  \begin{tikzpicture}
+    \node[fill=cardBg, draw=accentColor!30, rounded corners=8pt, inner sep=6pt, text width=\cardtextwidth, align=center] {
+      {\small \textbf{Candidato:}}\\
+      {\small \CandidateName}\\[3pt]
+      {\small \textbf{Plataforma:} Wokwi (Simulador)}\\[3pt]
+      {\small \textbf{Linguagem:} MicroPython}\\[3pt]
+      {\small \textbf{Arquitetura:} Assíncrona (\texttt{asyncio})}
+    };
+  \end{tikzpicture}
+
+  \vfill
+
+  {\scriptsize \color{mutedText} Apresentação simplificada -- formato mobile}\par
+  \vspace*{2mm}
+\end{center}
+\newpage
+
+% ------------------------------------------------------------------------------
+% SLIDE 2: Visão Geral do Projeto
+% ------------------------------------------------------------------------------
+\slideheader{Visão Geral}
+
+\card{Objetivo do Projeto}{
+  Desenvolver e simular um sistema embarcado responsivo com \textbf{ESP32} integrando tópicos de:
+  \begin{itemize}
+    \item Instrumentação
+    \item Eletrônica
+    \item Lógica de Programação
+  \end{itemize}
+}
+
+\card{Ferramentas Principais}{
+  \begin{itemize}
+    \item \textbf{ESP32}: placa microcontroladora.
+    \item \textbf{MicroPython}: linguagem de programação.
+    \item \textbf{Wokwi}: simulador de circuitos on-line.
+    \item \textbf{GitHub}: repositório e controle de versão.
+  \end{itemize}
+}
+\newpage
+
+% ------------------------------------------------------------------------------
+% SLIDE 3: Mapeamento de Hardware
+% ------------------------------------------------------------------------------
+\slideheader{Hardware \& Pinos}
+
+\card{Placa-Alvo}{
+  \textbf{Espressif ESP32-DevKitC V4}\\[2pt]
+  Módulo recomendado: \textbf{ESP32-WROOM-32E}.\\[2pt]
+  {\tiny (Evitar WROVER: usa internamente os GPIOs 16/17 para a PSRAM.)}
+}
+
+\alertcard{accentColor}{Conexões dos GPIOs}{
+  \begin{tabular}{@{}ll@{}}
+    \color{redAccent}\(\bullet\)\ \textbf{LED Vermelho:} & GPIO 2 (resistor 220~[$\Omega$]) \\
+    \color{greenAccent}\(\bullet\)\ \textbf{LED Verde:} & GPIO 4 (resistor 220~[$\Omega$]) \\
+    \(\bullet\)\ \textbf{Botão pulsador:} & GPIO 17 (\texttt{PULL\_DOWN}) \\
+    \(\bullet\)\ \textbf{OLED SCL:} & GPIO 25 (I\textsuperscript{2}C \textit{clock}) \\
+    \(\bullet\)\ \textbf{OLED SDA:} & GPIO 16 (I\textsuperscript{2}C \textit{data}) \\
+  \end{tabular}
+}
+\newpage
+
+% ------------------------------------------------------------------------------
+% SLIDE 4: Funcionamento do Sistema
+% ------------------------------------------------------------------------------
+\slideheader{Funcionamento}
+
+\alertcard{redAccent}{LED Vermelho (GPIO 2)}{
+  Pisca continuamente a cada \textbf{500~[ms]}, em uma tarefa assíncrona própria.\\[2pt]
+  Executa de forma \textbf{não bloqueante}: nunca impede a leitura do botão nem a atualização do OLED.
+}
+
+\alertcard{greenAccent}{Resposta ao Botão (GPIO 17)}{
+  \textbf{1. Botão solto (LOW):}
+  \begin{itemize}
+    \item LED Verde: \textbf{APAGADO}
+    \item OLED: \texttt{"Boa sorte!"}
+  \end{itemize}
+
+  \textbf{2. Botão pressionado (HIGH):}
+  \begin{itemize}
+    \item LED Verde: \textbf{ACESO}
+    \item OLED: \texttt{"Consegui"}
+  \end{itemize}
+}
+\newpage
+
+% ------------------------------------------------------------------------------
+% SLIDE 5: Execução Concorrente e Atualização Dinâmica
+% (slides "Arquitetura Software" e "Otimizações" da versão anterior, fundidos)
+% ------------------------------------------------------------------------------
+\slideheader{Execução Concorrente}
+
+\card{Duas Tarefas, Nunca Bloqueantes}{
+  O programa usa exclusivamente \textbf{\texttt{asyncio}} do MicroPython, em vez de um superlaço (\textit{superloop}) com \texttt{time.sleep()}. Duas \textbf{corrotinas} rodam sob escalonamento cooperativo:
+  \begin{itemize}
+    \item \textbf{Tarefa 1:} pisca o LED vermelho a cada 500~[ms].
+    \item \textbf{Tarefa 2:} lê o botão e atualiza o LED verde e o OLED.
+  \end{itemize}
+  Nenhuma tarefa impede a execução da outra -- o piscar do LED vermelho nunca atrasa a resposta ao botão.
+}
+
+\alertcard{accentColor}{OLED: Atualização Dinâmica}{
+  O mostrador \textbf{não} é redesenhado a cada iteração: é atualizado apenas quando o estado \textbf{estável} do botão muda (validado por antirrepique de software, \(\sim\)30~[ms]).
+  \begin{itemize}
+    \item Evita tráfego I\textsuperscript{2}C desnecessário.
+    \item Elimina a cintilação (\textit{flickering}).
+    \item O antirrepique dispensa filtro RC externo; na simulação Wokwi é mantido como boa prática, já que o botão simulado não tem repique real.
+  \end{itemize}
+}
+\newpage
+
+% ------------------------------------------------------------------------------
+% SLIDE 7: Validação e Testes
+% ------------------------------------------------------------------------------
+\slideheader{Validação}
+
+\card{Estratégia de Testes Isolados}{
+  Desenvolvimento com testes progressivos em \texttt{tests/}, do mais simples ao mais completo:
+  \begin{enumerate}
+    \item \textbf{LED Vermelho:} ciclo de 500~[ms], depois repetido com \texttt{asyncio}.
+    \item \textbf{Botão + LED Verde:} nível lógico e resistor interno de \textit{pull-down}.
+    \item \textbf{OLED I\textsuperscript{2}C:} varredura de endereço (\texttt{0x3C}) e testes gráficos completos.
+    \item \textbf{Integração Final:} execução concorrente em \texttt{main.py}.
+  \end{enumerate}
+}
+\newpage
+
+% ------------------------------------------------------------------------------
+% SLIDE 8: Conclusão \& Links
+% ------------------------------------------------------------------------------
+\slideheader{Conclusão}
+
+\alertcard{greenAccent}{Requisitos Atendidos}{
+  \begin{itemize}
+    \item[\okmark] LED vermelho: ciclo de 500~[ms], contínuo e não bloqueante.
+    \item[\okmark] LED verde: reflete o estado do botão (GPIO~17, \texttt{PULL\_DOWN}).
+    \item[\okmark] OLED: mensagem correta por estado, com atualização dinâmica.
+    \item[\okmark] Execução concorrente via \texttt{asyncio}, sem \texttt{time.sleep()}.
+  \end{itemize}
+}
+
+\begin{center}
+  \vspace{2mm}
+  {\small \textbf{\color{primaryColor} Links para Acesso:}}\\[4pt]
+
+  \alertcard{accentColor}{Simulação no Wokwi}{
+    \url{\WokwiURL}
+  }
+
+  \alertcard{primaryColor}{Repositório GitHub}{
+    \url{\GitHubURL}
+  }
+\end{center}
+
+\end{document}
