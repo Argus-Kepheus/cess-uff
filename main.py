@@ -3,8 +3,9 @@ CESS-UFF - ESP32 MicroPython Practical Assessment
 Courses: Instrumentation / Electronics / Programming Logic
 
 Controls two LEDs and updates an SSD1306 OLED display based on the state
-of a push button. All tasks run concurrently using asyncio, so the red
-LED blink never blocks (or is blocked by) any other functionality.
+of a push button. Cooperative asyncio tasks prevent timing delays from
+blocking the complete application and keep the red LED blinking
+independently from the button-monitoring logic.
 
 See docs/technical-specification.md for the full requirements and the
 rationale behind every decision below.

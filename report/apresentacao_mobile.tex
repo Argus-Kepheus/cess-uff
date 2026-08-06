@@ -150,16 +150,14 @@
   \end{tikzpicture}
 
   \vfill
-
-  {\scriptsize \color{mutedText} Apresentação simplificada -- formato mobile}\par
-  \vspace*{2mm}
 \end{center}
 \newpage
 
 % ------------------------------------------------------------------------------
-% SLIDE 2: Visão Geral do Projeto
+% SLIDE 2: Visão Geral do Projeto e Hardware
+% (slides "Visão Geral" e "Hardware & Pinos" da versão anterior, fundidos)
 % ------------------------------------------------------------------------------
-\slideheader{Visão Geral}
+\slideheader{Visão Geral \& Hardware}
 
 \card{Objetivo do Projeto}{
   Desenvolver e simular um sistema embarcado responsivo com \textbf{ESP32} integrando tópicos de:
@@ -169,21 +167,6 @@
     \item Lógica de Programação
   \end{itemize}
 }
-
-\card{Ferramentas Principais}{
-  \begin{itemize}
-    \item \textbf{ESP32}: placa microcontroladora.
-    \item \textbf{MicroPython}: linguagem de programação.
-    \item \textbf{Wokwi}: simulador de circuitos on-line.
-    \item \textbf{GitHub}: repositório e controle de versão.
-  \end{itemize}
-}
-\newpage
-
-% ------------------------------------------------------------------------------
-% SLIDE 3: Mapeamento de Hardware
-% ------------------------------------------------------------------------------
-\slideheader{Hardware \& Pinos}
 
 \card{Placa-Alvo}{
   \textbf{Espressif ESP32-DevKitC V4}\\[2pt]
@@ -208,8 +191,7 @@
 \slideheader{Funcionamento}
 
 \alertcard{redAccent}{LED Vermelho (GPIO 2)}{
-  Pisca continuamente a cada \textbf{500~[ms]}, em uma tarefa assíncrona própria.\\[2pt]
-  Executa de forma \textbf{não bloqueante}: nunca impede a leitura do botão nem a atualização do OLED.
+  Pisca continuamente a cada \textbf{500~[ms]}, em uma tarefa assíncrona própria.
 }
 
 \alertcard{greenAccent}{Resposta ao Botão (GPIO 17)}{
@@ -225,22 +207,16 @@
     \item OLED: \texttt{"Consegui"}
   \end{itemize}
 }
+
+\card{Duas Tarefas, Nunca Bloqueantes}{
+  O programa usa exclusivamente \textbf{\texttt{asyncio}} do MicroPython, em vez de um superlaço (\textit{superloop}) com \texttt{time.sleep()}. As duas tarefas acima rodam como \textbf{corrotinas} sob escalonamento cooperativo, e nenhuma bloqueia a outra: o piscar do LED vermelho nunca atrasa a resposta ao botão, nem a leitura do botão interrompe o LED vermelho.
+}
 \newpage
 
 % ------------------------------------------------------------------------------
-% SLIDE 5: Execução Concorrente e Atualização Dinâmica
-% (slides "Arquitetura Software" e "Otimizações" da versão anterior, fundidos)
+% SLIDE 5: Atualização Dinâmica do OLED
 % ------------------------------------------------------------------------------
-\slideheader{Execução Concorrente}
-
-\card{Duas Tarefas, Nunca Bloqueantes}{
-  O programa usa exclusivamente \textbf{\texttt{asyncio}} do MicroPython, em vez de um superlaço (\textit{superloop}) com \texttt{time.sleep()}. Duas \textbf{corrotinas} rodam sob escalonamento cooperativo:
-  \begin{itemize}
-    \item \textbf{Tarefa 1:} pisca o LED vermelho a cada 500~[ms].
-    \item \textbf{Tarefa 2:} lê o botão e atualiza o LED verde e o OLED.
-  \end{itemize}
-  Nenhuma tarefa impede a execução da outra -- o piscar do LED vermelho nunca atrasa a resposta ao botão.
-}
+\slideheader{Atualização Dinâmica}
 
 \alertcard{accentColor}{OLED: Atualização Dinâmica}{
   O mostrador \textbf{não} é redesenhado a cada iteração: é atualizado apenas quando o estado \textbf{estável} do botão muda (validado por antirrepique de software, \(\sim\)30~[ms]).

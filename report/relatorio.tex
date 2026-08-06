@@ -224,22 +224,14 @@ async def blink_red_led():
     while True:
         red_led.value(not red_led.value())
         await asyncio.sleep_ms(500)
-
-
 async def monitor_push_button():
     """Read, debounce, and apply stable button-state changes."""
     ...
-
-
 async def main():
-    asyncio.create_task(blink_red_led())
-    asyncio.create_task(monitor_push_button())
-
-    while True:
-        await asyncio.sleep_ms(1000)
-
-
-asyncio.run(main())
+    await asyncio.gather(
+        blink_red_led(),
+        monitor_push_button(),
+    )
 \end{lstlisting}
 
 Este trecho é uma síntese da arquitetura; o código completo e executável está disponível no repositório.
@@ -252,10 +244,9 @@ Essa decisão foi tomada pelos seguintes motivos:
 
 \begin{itemize}
   \item Separação clara entre o piscar do LED vermelho, a leitura do botão e a atualização das saídas;
-  \item Menor acoplamento entre funcionalidades;
-  \item Facilidade de manutenção e expansão com novos sensores ou atuadores;
+  \item Menor acoplamento entre funcionalidades e facilidade de manutenção e escalabilidade;
   \item Prevenção de congelamentos causados por \texttt{time.sleep()} no fluxo principal;
-  \item Melhor tolerância às pequenas latências introduzidas pela transmissão do quadro de imagem do OLED pelo barramento I\textsuperscript{2}C.
+  \item Melhor tolerância às pequenas latências introduzidas pela transmissão por meio do barramento I\textsuperscript{2}C.
 \end{itemize}
 
 O assincronismo adotado é cooperativo. Portanto, as tarefas devem alcançar pontos de espera com frequência e evitar rotinas longas ou bloqueantes.
@@ -272,14 +263,14 @@ A tarefa de entrada realiza amostragem periódica, antirrepique e detecção de 
   \centering
   \caption{Tabela de estados do botão, LED verde e OLED.}
   \label{tab:estados}
-  \begin{tabular}{@{}lll@{}}
+  \begin{tabularx}{\textwidth}{@{}YYY@{}}
     \toprule
     Estado estável do botão & LED verde & Mensagem do OLED \\
     \midrule
     Solto (LOW) & Apagado & \texttt{Boa sorte!} \\
     Pressionado (HIGH) & Aceso & \texttt{Consegui} \\
     \bottomrule
-  \end{tabular}
+  \end{tabularx}
 \end{table}
 
 A sincronização do LED verde e do OLED a partir do mesmo estado estável evita divergências entre a indicação luminosa e a mensagem apresentada.
@@ -325,8 +316,8 @@ A Figura~\ref{fig:circuito} apresenta o estado atual do circuito no Wokwi. As co
 \begin{figure}[htbp]
   \centering
   \includegraphics[
-    width=\textwidth,
-    height=0.66\textheight,
+    width=0.9\textwidth,
+    height=0.594\textheight,
     keepaspectratio
   ]{figures/circuito-wokwi.png}
   \caption{Circuito do projeto no Wokwi: ESP32-DevKitC V4, OLED SSD1306, botão e dois LEDs.}
